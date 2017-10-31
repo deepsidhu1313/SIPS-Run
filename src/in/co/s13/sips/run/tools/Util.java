@@ -370,51 +370,20 @@ public class Util {
                 Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        InputStream is = null;
-        OutputStream os = null;
-        try {
-            is = new FileInputStream(source);
-            os = new FileOutputStream(dest);
+
+        try (InputStream is = new FileInputStream(source); OutputStream os = new FileOutputStream(dest)) {
             byte[] buffer = new byte[1024];
             int length;
             while ((length = is.read(buffer)) > 0) {
                 os.write(buffer, 0, length);
             }
             System.out.println("" + source.getAbsolutePath() + " copied to " + dest.getAbsolutePath() + " ");
-
-            try {
-                is.close();
-                os.close();
-            } catch (IOException ex) {
-                Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-            try {
-                is.close();
-                os.close();
-            } catch (IOException e) {
-                Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
         } catch (IOException ex) {
             Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-            try {
-                is.close();
-                os.close();
-            } catch (IOException e) {
-                Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-        } finally {
-            try {
-                is.close();
-                os.close();
-            } catch (IOException ex) {
-                Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
+
     }
 
     public static void copyFileUsingStream(String pathtosrc, String pathtodest) {
@@ -443,5 +412,7 @@ public class Util {
         }
 
     }
+
+
 
 }

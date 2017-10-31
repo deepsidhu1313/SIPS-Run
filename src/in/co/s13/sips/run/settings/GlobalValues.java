@@ -16,14 +16,6 @@
  */
 package in.co.s13.sips.run.settings;
 
-import java.io.PrintStream;
-import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -37,5 +29,5 @@ public class GlobalValues {
      */
     public static String OS = System.getProperty("os.name").toLowerCase();
     public static int OS_Name = 0;
-
+    public static JSONObject MANIFEST_JSON;
 }
