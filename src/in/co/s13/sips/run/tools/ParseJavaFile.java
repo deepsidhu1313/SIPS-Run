@@ -10,6 +10,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import sips.run.SIPSRun;
@@ -29,8 +30,6 @@ public class ParseJavaFile implements Runnable {
         this.file = file;
         this.projectName = projectName;
         this.args = args;
-        Thread t = new Thread(this);
-        t.start();
     }
 
     @Override
@@ -40,10 +39,15 @@ public class ParseJavaFile implements Runnable {
             CompilationUnit cu = JavaParser.parse(in);
             // visit and print the methods names
             // new MethodVisitor().visit(cu, args);
-            Visitor flv = new Visitor(file, projectName);
+            Visitor flv = new Visitor(file);
             flv.visit(cu, args);
+            LevelDetector ld= new LevelDetector(file);
+            SIPSRun.levelDetectorExecutor.submit(ld);
+            
         } catch (IOException ex) {
             Logger.getLogger(SIPSRun.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(ParseJavaFile.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

@@ -6,23 +6,30 @@
 package sips.run;
 
 import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.ClassExpr;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.MethodReferenceExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import db.SQLiteJDBC;
+import in.co.s13.SIPS.db.SQLiteJDBC;
+
 import in.co.s13.sips.run.tools.Util;
 import java.io.File;
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -55,11 +62,12 @@ public class Visitor extends VoidVisitorAdapter {
 
     int annotationcounter = 0;
     int returncounter = 0;
+    int taskCounter = 0;
     int classcounter = 0, syntaxCounter = 0, methodcounter = 0, methodcallcounter = 0, objmethodcounter = 0, valmethodcounter = 0;
     SQLiteJDBC sqljdbc = new SQLiteJDBC();
-    String databaseLoc, databaseLoc2, databaseLoc3;
+    String databaseLoc, databaseLoc2, databaseLoc3, tasksDBLoc;
 //    File dir;
-
+    String sipsObjectName = "";
     String createdbsyntax = "CREATE TABLE SYNTAX "
             + "(ID INT PRIMARY KEY     NOT NULL,"
             + " Counter            INT     NOT NULL, "
@@ -118,10 +126,31 @@ public class Visitor extends VoidVisitorAdapter {
             + " Var        TEXT, "
             + " String        TEXT, "
             + " TimeStamp         BIGINT)";
+    String createTasks = "CREATE TABLE TASKS "
+            + "(ID INT PRIMARY KEY     NOT NULL AUTO_INCREMENT,"
+            + " BeginColumn           INT    NOT NULL, "
+            + " BeginLine            INT     NOT NULL, "
+            + " Class        TEXT, "
+            + " EndColumn      INT, "
+            + " EndLine        INT, "
+            + " Name        TEXT, "
+            + " Resources      TEXT, "
+            + " File        TEXT,"
+            + " Length         BIGINT,"
+            + " Timeout         BIGINT,"
+            + " TimeStamp         BIGINT)";
+//    String homeDir = System.getProperty("user.home") + "/.SIPS";
+    String homeDir =".build";
+    File file;
 
-    public Visitor(File file, String projectName) throws IOException {
-
-        databaseLoc = ".parsed/" + projectName + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-parsing.db";
+    public Visitor(File file) throws IOException {
+        this.file = file;
+        homeDir = SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build";
+        String parentDir=file.getAbsoluteFile().getParentFile().getAbsolutePath();
+//        System.out.println("Length: "+parentDir.length());
+        parentDir=parentDir.substring(parentDir.lastIndexOf("src")+3);
+//        System.out.println("Parent Dir: "+parentDir);
+        databaseLoc = homeDir + "/.parsed/" + parentDir + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-parsed.db";
         File dbfile = new File(databaseLoc);
         if (dbfile.exists()) {
             boolean b = dbfile.delete();
@@ -133,7 +162,7 @@ public class Visitor extends VoidVisitorAdapter {
         if (!dbfile.getParentFile().exists()) {
             dbfile.getParentFile().mkdirs();
         }
-        databaseLoc2 = ".simulated/" + projectName + "/sim.db";
+        databaseLoc2 = homeDir + "/.simulated/" + parentDir + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-sim.db";
         File dbfile2 = new File(databaseLoc2);
         if (dbfile2.exists()) {
             boolean b = dbfile2.delete();
@@ -147,6 +176,20 @@ public class Visitor extends VoidVisitorAdapter {
             dbfile2.getParentFile().mkdirs();
         }
 
+        tasksDBLoc = homeDir + "/.parsed/" + parentDir + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-tasks.db";
+        File taskDBFile = new File(tasksDBLoc);
+        if (taskDBFile.exists()) {
+            boolean b = taskDBFile.delete();
+            System.out.println("Deleted File : " + databaseLoc2 + " : " + b);
+            if (!b) {
+                Util.deleteFile(taskDBFile.getAbsolutePath());
+            }
+
+        }
+
+        if (!taskDBFile.getParentFile().exists()) {
+            taskDBFile.getParentFile().mkdirs();
+        }
     }
 
     public void closedb() throws SQLException {
@@ -283,6 +326,275 @@ public class Visitor extends VoidVisitorAdapter {
 
     }
 
+    public void visit(MethodCallExpr n, Object Args) {
+        if (("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+            String sql = "";
+
+            sql = "CREATE TABLE METHODCALL "
+                    + "(ID INT PRIMARY KEY     NOT NULL,"
+                    + " MethodCCounter            INT     NOT NULL, "
+                    + "Args TEXT,"
+                    + "BeginColumn INT,"
+                    + " BeginLine INT,"
+                    + "Class TEXT,"
+                    + "DATA TEXT,"
+                    + " EndColumn         INT,"
+                    + " EndLine        INT,"
+                    + "Scope        TEXT,"
+                    + "TypeArgs        TEXT,"
+                    + "Name        TEXT,"
+                    + " String        TEXT, "
+                    + " TimeStamp         BIGINT)";
+            if (methodcallcounter == 0) {
+                sqljdbc.createtable(databaseLoc, sql);
+            }
+
+            sql = "INSERT INTO METHODCALL (ID , MethodCCounter ,Args,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine,Scope,TypeArgs,Name, String , TimeStamp) "
+                    + "VALUES ('" + methodcallcounter + "',' " + methodcallcounter + "',' " + n.getArguments() + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "',' " + n.getClass() + "','" + n.getNameAsString() + "','" + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.getScope().get() + "','" + n.getTypeArguments() + "','" + n.getName() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
+            sqljdbc.insert(databaseLoc, sql);
+            sqljdbc.closeConnection();
+            methodcallcounter++;
+//        System.out.println("" + n.getScope().get());
+            if (n.getNameAsString().contains("saveValues") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "CREATE TABLE VAL" + valmethodcounter + " "
+                        + "(ID INT PRIMARY KEY     NOT NULL,"
+                        + "NAME TEXT,"
+                        + "VALUE TEXT"
+                        + ")";
+
+                sqljdbc.createtable(databaseLoc2, sql);
+                for (int i = 0; i <= n.getArguments().size() - 1; i++) {
+
+                    sql = "INSERT INTO VAL" + valmethodcounter + "(ID, NAME) VALUES ('" + i + "','" + n.getArgument(i) + "');";
+                    sqljdbc.insert(databaseLoc2, sql);
+                }
+                sqljdbc.closeConnection();
+
+                if (valmethodcounter == 0) {
+                    sql = "CREATE  TABLE SAVVAL"
+                            + "(ID INT PRIMARY KEY     NOT NULL,"
+                            + "BeginColumn INT,"
+                            + " BeginLine INT,"
+                            + " EndColumn         INT,"
+                            + " EndLine        INT,"
+                            + "Name        TEXT,"
+                            + " String        TEXT, "
+                            + " TimeStamp         BIGINT)";
+                    sqljdbc.createtable(databaseLoc, sql);
+                }
+
+                sql = "INSERT INTO SAVVAL (ID ,BeginColumn, BeginLine, EndColumn , EndLine,Name, String , TimeStamp) "
+                        + "VALUES ('" + valmethodcounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "',' " + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.getName() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
+                sqljdbc.insert(databaseLoc, sql);
+                sqljdbc.closeConnection();
+
+                valmethodcounter++;
+
+            }
+
+            if (n.getNameAsString().contains("saveObject") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "CREATE TABLE OBJ" + objmethodcounter + " "
+                        + "(ID INT PRIMARY KEY     NOT NULL,"
+                        + "NAME TEXT,"
+                        + "VALUE LONGBLOB)";
+
+                sqljdbc.createtable(databaseLoc2, sql);
+                for (int i = 0; i <= n.getArguments().size() - 1; i++) {
+
+                    sql = "INSERT INTO OBJ" + objmethodcounter + "(ID, NAME) VALUES ('" + i + "','" + n.getArgument(i) + "');";
+                    sqljdbc.insert(databaseLoc2, sql);
+                }
+                sqljdbc.closeConnection();
+                objmethodcounter++;
+            }
+            if (n.getNameAsString().contains("simulateLoop") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+
+                    sqljdbc.createtable(databaseLoc, sql);
+
+                }
+
+                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.toString() + "','" + System.currentTimeMillis() + "','SimulateLoop','0' ,'NULL' );";
+                sqljdbc.insert(databaseLoc, sql);
+                sqljdbc.closeConnection();
+                syntaxCounter++;
+            }
+
+            if (n.getNameAsString().contains("simulateSection") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+
+                    sqljdbc.createtable(databaseLoc, sql);
+
+                }
+
+                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + "','" + System.currentTimeMillis() + "','SimulateSection','0' ,'NULL' );";
+                sqljdbc.insert(databaseLoc, sql);
+                sqljdbc.closeConnection();
+                syntaxCounter++;
+            }
+
+            if (n.getNameAsString().contains("endSimulateSection") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+
+                    sqljdbc.createtable(databaseLoc, sql);
+
+                }
+                sql = "SELECT * FROM SYNTAX WHERE BeginLine<='" + n.getBegin().get().line + "' AND EndLine<='" + n.getEnd().get().line + "';";
+                ResultSet rs = sqljdbc.select(databaseLoc, sql);
+                int id = Integer.MIN_VALUE;
+                try {
+                    if (rs.next()) {
+                        id = rs.getInt("ID");
+                    }
+                    rs.close();
+                    sqljdbc.closeConnection();
+                    sql = "UPDATE SYNTAX SET EndLine='" + n.getEnd().get().line + "', EndColumn='" + n.getEnd().get().column + "', SIM='TRUE' WHERE ID='" + id + "';";
+                    sqljdbc.update(databaseLoc, sql);
+                    sqljdbc.closeConnection();
+
+                } catch (SQLException ex) {
+                    Logger.getLogger(Visitor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                //syntaxCounter++;
+            }
+            if (n.getNameAsString().contains("defineTask") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+
+                    sqljdbc.createtable(databaseLoc, sql);
+
+                }
+
+                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + "','" + System.currentTimeMillis() + "','Task','0' ,'NULL' );";
+                sqljdbc.insert(databaseLoc, sql);
+                sqljdbc.closeConnection();
+                syntaxCounter++;
+
+                sql = "" + createTasks;
+                if (taskCounter == 0) {
+                    sqljdbc.createtable(tasksDBLoc, sql);
+                }
+
+                sql = "INSERT INTO TASKS (BeginColumn,BeginLine,Class,Name,File,Timestamp) VALUES ('"
+                        + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + file.getName() + "','" + n.getArgument(0) + "','" + file.getName() + "','" + System.currentTimeMillis() + "');";
+                sqljdbc.insert(tasksDBLoc, sql);
+                sqljdbc.closeConnection();
+                taskCounter++;
+
+            }
+            if (n.getNameAsString().contains("setTaskResourcePriority") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+
+                    sqljdbc.createtable(databaseLoc, sql);
+
+                }
+
+                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + "','" + System.currentTimeMillis() + "','Task','0' ,'NULL' );";
+                sqljdbc.insert(databaseLoc, sql);
+                sqljdbc.closeConnection();
+                syntaxCounter++;
+
+                sql = "" + createTasks;
+                if (taskCounter == 0) {
+                    sqljdbc.createtable(tasksDBLoc, sql);
+                }
+                NodeList<Expression> args = n.getArguments();
+                String resources = "";
+                for (int i = 1; i < args.size(); i++) {
+                    Expression get = args.get(i);
+                    resources += get.toString() + ",";
+                }
+                sql = "UPDATE TASKS SET Resources='" + resources + "' WHERE Name='" + n.getArgument(0) + "';";
+                sqljdbc.update(tasksDBLoc, sql);
+                sqljdbc.closeConnection();
+
+            }
+            if (n.getNameAsString().contains("endTask") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+
+                    sqljdbc.createtable(databaseLoc, sql);
+
+                }
+
+                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + "','" + System.currentTimeMillis() + "','Task','0' ,'NULL' );";
+                sqljdbc.insert(databaseLoc, sql);
+                sqljdbc.closeConnection();
+                syntaxCounter++;
+
+                sql = "" + createTasks;
+                if (taskCounter == 0) {
+                    sqljdbc.createtable(tasksDBLoc, sql);
+                }
+
+                sql = "UPDATE TASKS SET EndColumn='" + n.getEnd().get().column + "',EndLine='" + n.getEnd().get().line + "' WHERE Name='" + n.getArgument(0) + "';";
+                sqljdbc.update(tasksDBLoc, sql);
+                sqljdbc.closeConnection();
+
+            }
+            if (n.getNameAsString().contains("setDuration") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+
+                    sqljdbc.createtable(databaseLoc, sql);
+
+                }
+
+                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + "','" + System.currentTimeMillis() + "','Task','0' ,'NULL' );";
+                sqljdbc.insert(databaseLoc, sql);
+                sqljdbc.closeConnection();
+                syntaxCounter++;
+
+                sql = "" + createTasks;
+                if (taskCounter == 0) {
+                    sqljdbc.createtable(tasksDBLoc, sql);
+                }
+
+                sql = "UPDATE TASKS SET Length='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "';";
+                sqljdbc.update(tasksDBLoc, sql);
+                sqljdbc.closeConnection();
+
+            }
+            if (n.getNameAsString().contains("setTimeout") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+
+                    sqljdbc.createtable(databaseLoc, sql);
+
+                }
+
+                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + "','" + System.currentTimeMillis() + "','Task','0' ,'NULL' );";
+                sqljdbc.insert(databaseLoc, sql);
+                sqljdbc.closeConnection();
+                syntaxCounter++;
+
+                sql = "" + createTasks;
+                if (taskCounter == 0) {
+                    sqljdbc.createtable(tasksDBLoc, sql);
+                }
+
+                sql = "UPDATE TASKS SET Timeout='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "';";
+                sqljdbc.update(tasksDBLoc, sql);
+                sqljdbc.closeConnection();
+
+            }
+
+        }
+        super.visit(n, Args);
+
+    }
+
     public void visit(VariableDeclarationExpr n, Object Args) {
 //        System.out.println(n.getAnnotations());
 //        System.out.println(n.getBegin());
@@ -330,8 +642,17 @@ public class Visitor extends VoidVisitorAdapter {
             sqljdbc.createtable(databaseLoc, sql);
         }
 
+        if (("" + n.getElementType()).equalsIgnoreCase("SIPS")) {
+            sipsObjectName = ("" + n.getVariable(0).getNameAsString());
+        }
+        String vars = "";
+        NodeList<VariableDeclarator> list = n.getVariables();
+        for (int i = 0; i < list.size(); i++) {
+            VariableDeclarator get = list.get(i);
+            vars += (get.getNameAsString()) + ",";
+        }
         sql = "INSERT INTO VARIABLES (ID , VariableCounter ,Annotations,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine  ,Modifier,Type,Var, String , TimeStamp) "
-                + "VALUES ('" + varcounter + "',' " + varcounter + "',' " + n.getAnnotations() + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','" + n.getClass() + "','" + n.getAnnotations() + "','" + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.getModifiers() + "','" + n.getElementType() + "','" + n.getVariables() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
+                + "VALUES ('" + varcounter + "',' " + varcounter + "',' " + n.getAnnotations() + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','" + n.getClass() + "','" + n.getAnnotations() + "','" + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.getModifiers() + "','" + n.getElementType() + "','" + vars + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
 
         sqljdbc.insert(databaseLoc, sql);
         sqljdbc.closeConnection();
@@ -791,103 +1112,9 @@ public class Visitor extends VoidVisitorAdapter {
 //
 //        super.visit(n, Args);
 //    }
-    public void visit(MethodCallExpr n, Object Args) {
-
-        String sql = "";
-
-        sql = "CREATE TABLE METHODCALL "
-                + "(ID INT PRIMARY KEY     NOT NULL,"
-                + " MethodCCounter            INT     NOT NULL, "
-                + "Args TEXT,"
-                + "BeginColumn INT,"
-                + " BeginLine INT,"
-                + "Class TEXT,"
-                + "DATA TEXT,"
-                + " EndColumn         INT,"
-                + " EndLine        INT,"
-                + "Scope        TEXT,"
-                + "TypeArgs        TEXT,"
-                + "Name        TEXT,"
-                + " String        TEXT, "
-                + " TimeStamp         BIGINT)";
-        if (methodcallcounter == 0) {
-            sqljdbc.createtable(databaseLoc, sql);
-        }
-
-        sql = "INSERT INTO METHODCALL (ID , MethodCCounter ,Args,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine,Scope,TypeArgs,Name, String , TimeStamp) "
-                + "VALUES ('" + methodcallcounter + "',' " + methodcallcounter + "',' " + n.getArguments() + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "',' " + n.getClass() + "','" + n.getNameAsString() + "','" + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.getScope() + "','" + n.getTypeArguments()+ "','" + n.getName() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-        sqljdbc.insert(databaseLoc, sql);
-        sqljdbc.closeConnection();
-        methodcallcounter++;
-        if (n.getNameAsString().contains("saveValues")) {
-            sql = "CREATE TABLE VAL" + valmethodcounter + " "
-                    + "(ID INT PRIMARY KEY     NOT NULL,"
-                    + "NAME TEXT,"
-                    + "VALUE TEXT"
-                    + ")";
-
-            sqljdbc.createtable(databaseLoc2, sql);
-            for (int i = 0; i <= n.getArguments().size() - 1; i++) {
-
-                sql = "INSERT INTO VAL" + valmethodcounter + "(ID, NAME) VALUES ('" + i + "','" + n.getArgument(i) + "');";
-                sqljdbc.insert(databaseLoc2, sql);
-            }
-            sqljdbc.closeConnection();
-
-            if (valmethodcounter == 0) {
-                sql = "CREATE  TABLE SAVVAL"
-                        + "(ID INT PRIMARY KEY     NOT NULL,"
-                        + "BeginColumn INT,"
-                        + " BeginLine INT,"
-                        + " EndColumn         INT,"
-                        + " EndLine        INT,"
-                        + "Name        TEXT,"
-                        + " String        TEXT, "
-                        + " TimeStamp         BIGINT)";
-                sqljdbc.createtable(databaseLoc, sql);
-            }
-
-            sql = "INSERT INTO SAVVAL (ID ,BeginColumn, BeginLine, EndColumn , EndLine,Name, String , TimeStamp) "
-                    + "VALUES ('" + valmethodcounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "',' " + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.getName() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-            sqljdbc.insert(databaseLoc, sql);
-            sqljdbc.closeConnection();
-
-            valmethodcounter++;
-
-        }
-
-        if (n.getNameAsString().contains("saveObject")) {
-            sql = "CREATE TABLE OBJ" + objmethodcounter + " "
-                    + "(ID INT PRIMARY KEY     NOT NULL,"
-                    + "NAME TEXT,"
-                    + "VALUE LONGBLOB)";
-
-            sqljdbc.createtable(databaseLoc2, sql);
-            for (int i = 0; i <= n.getArguments().size() - 1; i++) {
-
-                sql = "INSERT INTO OBJ" + objmethodcounter + "(ID, NAME) VALUES ('" + i + "','" + n.getArgument(i) + "');";
-                sqljdbc.insert(databaseLoc2, sql);
-            }
-            sqljdbc.closeConnection();
-            objmethodcounter++;
-        }
-        if (n.getNameAsString().contains("simulateDLoop")) {
-            sql = "" + createdbsyntax;
-            if (syntaxCounter == 0) {
-
-                sqljdbc.createtable(databaseLoc, sql);
-
-            }
-
-            sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
-                    + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.toString() + "','" + System.currentTimeMillis() + "','SimulateLoop','0' ,'NULL' );";
-            sqljdbc.insert(databaseLoc, sql);
-            sqljdbc.closeConnection();
-            syntaxCounter++;
-        }
-
-        super.visit(n, Args);
-
+    public void visit(MethodReferenceExpr n, Object arg) {
+//        System.out.println("" + n.getIdentifier());
+        super.visit(n, arg);
     }
 
 //    @Override

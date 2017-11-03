@@ -12,6 +12,9 @@ import in.co.s13.sips.run.tools.Util;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -21,34 +24,29 @@ import org.json.JSONObject;
  */
 public class SIPSRun {
 
+    public static File MANIFEST_FILE;
+    public static ArrayList<String> javaFiles;
+    public static ExecutorService levelDetectorExecutor;
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-
-        // parse the file
-//        File f = new File("MatMul.java");
-
+    public static void main(String[] args) throws InterruptedException {
+        System.out.println("SIPS-Run");
+        String manifestFile = "manifest.json";
+        JSONObject manifestJSON = null;
         if (args.length > 0) {
             ArrayList<String> arguments = new ArrayList<>();
             Collections.addAll(arguments, args);
-            String manifestFile;
-            JSONObject manifestJSON;
+
             if (arguments.size() > 0) {
                 if (arguments.contains("--generate-manifest")) {
-                    JSONObject manifest = new JSONObject();
-                    manifest.put("PROJECT", "");
-                    manifest.put("MAIN", "");
-                    JSONArray libs = new JSONArray();
-                    libs.put("lib1.jar");
-                    manifest.put("LIB", libs);
-                    manifest.put("ATTCH", new JSONArray());
-                    manifest.put("ARGS", new JSONArray());
-                    manifest.put("JVMARGS", new JSONArray());
-                    manifest.put("OUTPUTFREQUENCY", 100);
-                    manifest.put("SCHEDULER", "chunk");
-                    Util.write("manifest.json", manifest.toString(4));
-                    System.out.println("Put SIPS lib1 jar file in the directory to provide SIPS support");
+                    generateManifest("");
+                    System.exit(0);
+                }
+
+                if (arguments.contains("--create")) {
+                    createProject(arguments.get(arguments.indexOf("--create") + 1));
                     System.exit(0);
                 }
 
@@ -57,22 +55,77 @@ public class SIPSRun {
                     manifestFile = arguments.get(index + 1);
                     manifestJSON = Util.readJSONFile(manifestFile);
                 } else {
-                    manifestJSON = Util.readJSONFile("manifest.json");
+                    if (!new File(manifestFile).exists()) {
+                        System.err.println("manifest.json Not Found");
+                        System.exit(1);
+                    }
+                    manifestJSON = Util.readJSONFile(manifestFile);
 
                 }
                 GlobalValues.MANIFEST_JSON = manifestJSON;
 
-            } else {
-                manifestJSON = Util.readJSONFile("manifest.json");
-                GlobalValues.MANIFEST_JSON = manifestJSON;
             }
-            GetJavaFiles getJavaFiles = new GetJavaFiles();
-            ArrayList<String> javaFiles = getJavaFiles.getJavaFiles(".");
-            for (int i = 0; i < javaFiles.size(); i++) {
-                String get = javaFiles.get(i);
-                ParseJavaFile parseJavaFile = new ParseJavaFile(new File(get), manifestJSON.getString("PROJECT", new File(".").getName()), args);
+        } else {
+            if (!new File(manifestFile).exists()) {
+                System.err.println("manifest.json Not Found");
+                System.exit(1);
             }
+            manifestJSON = Util.readJSONFile(manifestFile);
+            GlobalValues.MANIFEST_JSON = manifestJSON;
         }
+        MANIFEST_FILE = new File(new File(manifestFile).getAbsolutePath());
+        GetJavaFiles getJavaFiles = new GetJavaFiles();
+        javaFiles = getJavaFiles.getJavaFiles(".");
+        System.out.println("List of Java Files:\n" + javaFiles);
+        ExecutorService parserExecutor = Executors.newFixedThreadPool(javaFiles.size());
+        levelDetectorExecutor = Executors.newFixedThreadPool(javaFiles.size());
+        for (int i = 0; i < javaFiles.size(); i++) {
+            String get = javaFiles.get(i);
+            ParseJavaFile parseJavaFile = new ParseJavaFile(new File(get), manifestJSON.getString("PROJECT", new File(".").getName()), args);
+            parserExecutor.submit(parseJavaFile);
+        }
+        parserExecutor.shutdown();
+        parserExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        levelDetectorExecutor.shutdown();
+        levelDetectorExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+
+    }
+
+    public static void generateManifest(String projectName) {
+        JSONObject manifest = new JSONObject();
+        manifest.put("PROJECT", projectName);
+        manifest.put("MAIN", "" + projectName.replaceAll(System.lineSeparator(), ".").replaceAll("-", "_"));
+        JSONArray libs = new JSONArray();
+        libs.put("lib1.jar");
+        manifest.put("LIB", libs);
+        manifest.put("ATTCH", new JSONArray());
+        manifest.put("ARGS", new JSONArray());
+        manifest.put("JVMARGS", new JSONArray());
+        manifest.put("OUTPUTFREQUENCY", 100);
+        JSONObject scheduler = new JSONObject();
+        scheduler.put("Name", "chunk");
+        scheduler.put("MaxNodes", "4");
+        manifest.put("SCHEDULER", scheduler);
+        manifest.put("HOST", "127.0.0.1");
+        Util.write(((projectName.trim().length() > 0 ? projectName + "/" : ""))
+                + "manifest.json", manifest.toString(4)
+        );
+        System.out.println("Put SIPS lib1 jar file in the directory to provide SIPS support");
+
+    }
+
+    public static void createProject(String name) {
+        File projectDir = new File(name);
+        if (projectDir.exists()) {
+            System.out.println("Project " + name + "already exist in the folder");
+            return;
+        }
+        projectDir.mkdirs();
+        File libDir = new File(name + "/lib");
+        libDir.mkdirs();
+        File srcDir = new File(name + "/src");
+        srcDir.mkdirs();
+        generateManifest(name);
     }
 
 }

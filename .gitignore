@@ -25,3 +25,5 @@ hs_err_pid*
 .parsed/
 .simulated/
 MatMul.java
+workspace/
+store/
