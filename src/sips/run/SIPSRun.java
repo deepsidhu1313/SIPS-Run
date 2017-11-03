@@ -75,7 +75,7 @@ public class SIPSRun {
         }
         MANIFEST_FILE = new File(new File(manifestFile).getAbsolutePath());
         GetJavaFiles getJavaFiles = new GetJavaFiles();
-        javaFiles = getJavaFiles.getJavaFiles(".");
+        javaFiles = getJavaFiles.getJavaFiles(new File(MANIFEST_FILE.getParentFile(), "src").getAbsolutePath());
         System.out.println("List of Java Files:\n" + javaFiles);
         ExecutorService parserExecutor = Executors.newFixedThreadPool(javaFiles.size());
         levelDetectorExecutor = Executors.newFixedThreadPool(javaFiles.size());
