@@ -1,6 +1,6 @@
 #SIPS-Run
 
-###Tool to execute SIPS project
+##Tool to execute SIPS project
 
 ##Build Status
 

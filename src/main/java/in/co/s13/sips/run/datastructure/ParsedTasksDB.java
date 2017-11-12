@@ -5,13 +5,10 @@
  */
 package in.co.s13.sips.run.datastructure;
 
-import java.util.HashMap;
+import in.co.s13.SIPS.db.SQLiteJDBC;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- *
- * @author nika
- */
+
 public class ParsedTasksDB {
 
     private ConcurrentHashMap<String, ParsedTasksDBRow> db = new ConcurrentHashMap<>();
@@ -29,7 +26,8 @@ public class ParsedTasksDB {
     }
 
     public void toSQLiteDB(String file) {
-
+        SQLiteJDBC sqliteDB= new SQLiteJDBC();
+        
     }
 
 }

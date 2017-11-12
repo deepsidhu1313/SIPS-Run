@@ -126,8 +126,7 @@
         <dependency>
             <groupId>com.github.javaparser</groupId>
             <artifactId>javaparser-core</artifactId>
-            <version>3.4.5-SNAPSHOT</version>
-            <type>jar</type>
+            <version>3.5.2</version>
         </dependency>
     </dependencies>
 </project>
