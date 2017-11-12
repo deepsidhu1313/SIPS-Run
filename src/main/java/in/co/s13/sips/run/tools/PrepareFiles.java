@@ -17,42 +17,58 @@
 package in.co.s13.sips.run.tools;
 
 import in.co.s13.SIPS.db.SQLiteJDBC;
+import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import sips.run.SIPSRun;
 
-/**
- *
- * @author Navdeep Singh <navdeepsingh.sidhu95 at gmail.com>
- */
 public class PrepareFiles {
 
     public static String OS = System.getProperty("os.name").toLowerCase();
     public static int OS_Name = 0;
     String dbloc = "";
     SQLiteJDBC db = new SQLiteJDBC();
-    ArrayList<Integer> combeginline = new ArrayList<>();
-    ArrayList<Integer> comendline = new ArrayList<>();
-    ArrayList<Integer> combegincol = new ArrayList<>();
-    ArrayList<Integer> comendcol = new ArrayList<>();
-    ArrayList<Integer> comlevel = new ArrayList<>();
-    ArrayList<Integer> uncombeginline = new ArrayList<>();
-    ArrayList<Integer> uncomendline = new ArrayList<>();
-    ArrayList<Integer> uncombegincol = new ArrayList<>();
-    ArrayList<Integer> uncomendcol = new ArrayList<>();
-    ArrayList<Integer> uncomlevel = new ArrayList<>();
-    int comlastbl = 0, comlastel = 0, comlastlvl = 0;
+    ArrayList<Integer> commentBeginLine = new ArrayList<>();
+    ArrayList<Integer> commentEndLine = new ArrayList<>();
+    ArrayList<Integer> commentBeginColumn = new ArrayList<>();
+    ArrayList<Integer> commentEndColumn = new ArrayList<>();
+    ArrayList<Integer> commentLevel = new ArrayList<>();
+    ArrayList<Integer> uncommentBeginLine = new ArrayList<>();
+    ArrayList<Integer> uncommentEndLine = new ArrayList<>();
+    ArrayList<Integer> uncommentBeginColumn = new ArrayList<>();
+    ArrayList<Integer> uncommentEndColumn = new ArrayList<>();
+    ArrayList<Integer> uncommentLevel = new ArrayList<>();
+    int lastCommentBeginLine = 0, lastCommentEndLine = 0, lastCommentLevel = 0;
 
-    public PrepareFiles(int mode, String file) {
+    public static enum MODE {
+        COMMENT(0),
+        UNCOMMENT(1);
+        private int value;
+
+        MODE(int value) {
+            this.value = value;
+        }
+
+    };
+
+    public PrepareFiles(MODE mode, File file) {
 
         System.out.println(OS);
         System.out.println(file);
+        String homeDir = SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build";
+                String parentDir=file.getAbsoluteFile().getParentFile().getAbsolutePath();
+//        System.out.println("Length: "+parentDir.length());
+        parentDir=parentDir.substring(parentDir.lastIndexOf("src")+3);
+//        System.out.println("Parent Dir: "+parentDir);
+        dbloc = homeDir + "/.parsed/" + parentDir + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-parsed.db";
+       
         if (isWindows()) {
             System.out.println("This is Windows");
             OS_Name = 0;
-            
-            dbloc = file.substring(0, file.lastIndexOf("."));
-            dbloc += "-parsing.db";
+
+//            dbloc = file.substring(0, file.lastIndexOf("."));
+//            dbloc += "-parsing.db";
 
         } else if (isMac()) {
             System.out.println("This is Mac");
@@ -61,10 +77,10 @@ public class PrepareFiles {
             System.out.println("This is Unix or Linux");
 
             OS_Name = 2;
-            if (file.contains("/")) {
-                dbloc = file.substring(0, file.lastIndexOf("."));
-            }
-            dbloc += "-parsing.db";
+//            if (file.contains("/")) {
+//                dbloc = file.substring(0, file.lastIndexOf("."));
+//            }
+//            dbloc += "-parsing.db";
 
         } else if (isSolaris()) {
             System.out.println("This is Solaris");
@@ -82,34 +98,36 @@ public class PrepareFiles {
 
             while (rs.next()) {
                 System.out.println("" + rs.getString("Category"));
-                if (rs.getString("Category").contains("ForLoop") || rs.getString("Category").contains("WhileLoop")||rs.getString("Category").contains("SimulateSection")) {
-                    if (mode == 0) {
+//                if (    rs.getString("Category").contains("ForLoop") || rs.getString("Category").contains("WhileLoop") ||
+//                        rs.getString("Category").contains("SimulateSection"))
+                {
+                    if (mode==(MODE.COMMENT) ) {
                         if (rs.getString("SIM").equalsIgnoreCase("TRUE")) {
 
                         } else {
-                            combeginline.add(rs.getInt("BeginLine"));
-                            combegincol.add(rs.getInt("BeginColumn"));
-                            comendline.add(rs.getInt("EndLine"));
-                            comendcol.add(rs.getInt("EndColumn"));
-                            comlevel.add(rs.getInt("Level"));
+                            commentBeginLine.add(rs.getInt("BeginLine"));
+                            commentBeginColumn.add(rs.getInt("BeginColumn"));
+                            commentEndLine.add(rs.getInt("EndLine"));
+                            commentEndColumn.add(rs.getInt("EndColumn"));
+                            commentLevel.add(rs.getInt("Level"));
                         }
-                    } else if (mode == 1) {
+                    } else if (mode == MODE.UNCOMMENT) {
                         if (rs.getString("SIM").equalsIgnoreCase("TRUE")) {
-                            combeginline.add(rs.getInt("BeginLine"));
-                            combegincol.add(rs.getInt("BeginColumn"));
-                            comendline.add(rs.getInt("EndLine"));
-                            comendcol.add(rs.getInt("EndColumn"));
-                            comlevel.add(rs.getInt("Level"));
+                            commentBeginLine.add(rs.getInt("BeginLine"));
+                            commentBeginColumn.add(rs.getInt("BeginColumn"));
+                            commentEndLine.add(rs.getInt("EndLine"));
+                            commentEndColumn.add(rs.getInt("EndColumn"));
+                            commentLevel.add(rs.getInt("Level"));
 
                             //   Commentator cm = new Commentator(file, rs.getInt("BeginLine"), rs.getInt("BeginColumn"), rs.getInt("EndLine"), rs.getInt("EndColumn"));
                             //  System.out.println("Commenting Done");
                         } else {
 
-                            uncombeginline.add(rs.getInt("BeginLine"));
-                            uncombegincol.add(rs.getInt("BeginColumn"));
-                            uncomendline.add(rs.getInt("EndLine"));
-                            uncomendcol.add(rs.getInt("EndColumn"));
-                            uncomlevel.add(rs.getInt("Level"));
+                            uncommentBeginLine.add(rs.getInt("BeginLine"));
+                            uncommentBeginColumn.add(rs.getInt("BeginColumn"));
+                            uncommentEndLine.add(rs.getInt("EndLine"));
+                            uncommentEndColumn.add(rs.getInt("EndColumn"));
+                            uncommentLevel.add(rs.getInt("Level"));
 
                             //  UnCommentator cm = new UnCommentator(file, rs.getInt("BeginLine"), rs.getInt("BeginColumn"), rs.getInt("EndLine"), rs.getInt("EndColumn"));
                             //  System.out.println("UnCommenting Done");
@@ -122,44 +140,44 @@ public class PrepareFiles {
             rs.close();
             db.closeConnection();
 
-            System.out.println("comment Bl " + combeginline);
-            System.out.println("comment El " + comendline);
-            System.out.println("comment LVl " + comlevel);
-            System.out.println("uncomment Bl " + uncombeginline);
-            System.out.println("uncomment El " + uncomendline);
-            System.out.println("uncomment LVl " + uncomlevel);
+            System.out.println("comment Bl " + commentBeginLine);
+            System.out.println("comment El " + commentEndLine);
+            System.out.println("comment LVl " + commentLevel);
+            System.out.println("uncomment Bl " + uncommentBeginLine);
+            System.out.println("uncomment El " + uncommentEndLine);
+            System.out.println("uncomment LVl " + uncommentLevel);
 
-            if (mode == 0) {
-                for (int i = 0; i < combeginline.size(); i++) {
-                    if ((combeginline.get(i) >= comlastbl) && (comendline.get(i) <= comlastel) && (comlevel.get(i) > comlastlvl)) {
+            if (mode == MODE.COMMENT) {
+                for (int i = 0; i < commentBeginLine.size(); i++) {
+                    if ((commentBeginLine.get(i) >= lastCommentBeginLine) && (commentEndLine.get(i) <= lastCommentEndLine) && (commentLevel.get(i) > lastCommentLevel)) {
 
                     } else {
-                        Commentator cm = new Commentator(file, combeginline.get(i), combegincol.get(i), comendline.get(i), comendcol.get(i));
+                        Commentator cm = new Commentator(file.getAbsolutePath(), commentBeginLine.get(i), commentBeginColumn.get(i), commentEndLine.get(i), commentEndColumn.get(i));
                         System.out.println("Commenting Done");
-                        comlastbl = combeginline.get(i);
-                        comlastel = comendline.get(i);
-                        comlastlvl = comlevel.get(i);
+                        lastCommentBeginLine = commentBeginLine.get(i);
+                        lastCommentEndLine = commentEndLine.get(i);
+                        lastCommentLevel = commentLevel.get(i);
                     }
 
                 }
 
-            } else if (mode == 1) {
+            } else if (mode == MODE.UNCOMMENT) {
 
-                for (int i = 0; i < combeginline.size(); i++) {
-                    if ((combeginline.get(i) >= comlastbl) && (comendline.get(i) <= comlastel) && (comlevel.get(i) > comlastlvl)) {
+                for (int i = 0; i < commentBeginLine.size(); i++) {
+                    if ((commentBeginLine.get(i) >= lastCommentBeginLine) && (commentEndLine.get(i) <= lastCommentEndLine) && (commentLevel.get(i) > lastCommentLevel)) {
 
                     } else {
-                        Commentator cm = new Commentator(file, combeginline.get(i), combegincol.get(i), comendline.get(i), comendcol.get(i));
+                        Commentator cm = new Commentator(file.getAbsolutePath(), commentBeginLine.get(i), commentBeginColumn.get(i), commentEndLine.get(i), commentEndColumn.get(i));
                         System.out.println("Commenting Done");
-                        comlastbl = combeginline.get(i);
-                        comlastel = comendline.get(i);
-                        comlastlvl = comlevel.get(i);
+                        lastCommentBeginLine = commentBeginLine.get(i);
+                        lastCommentEndLine = commentEndLine.get(i);
+                        lastCommentLevel = commentLevel.get(i);
 
                     }
 
                 }
-                for (int i = 0; i < uncombeginline.size(); i++) {
-                    UnCommentator cm = new UnCommentator(file, uncombeginline.get(i), uncombegincol.get(i), uncomendline.get(i), uncomendcol.get(i));
+                for (int i = 0; i < uncommentBeginLine.size(); i++) {
+                    UnCommentator cm = new UnCommentator(file.getAbsolutePath(), uncommentBeginLine.get(i), uncommentBeginColumn.get(i), uncommentEndLine.get(i), uncommentEndColumn.get(i));
                     System.out.println("UnCommenting Done");
 
                 }
@@ -172,7 +190,7 @@ public class PrepareFiles {
 
     public static void main(String[] args) {
         int i = Integer.parseInt(args[0]);
-        PrepareFiles l = new PrepareFiles(i, args[1]);
+//        PrepareFiles l = new PrepareFiles(MODE.COMMENT, args[1]);
     }
 
     public static boolean isWindows() {

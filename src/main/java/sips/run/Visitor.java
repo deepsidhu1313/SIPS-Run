@@ -140,15 +140,16 @@ public class Visitor extends VoidVisitorAdapter {
             + " Timeout         BIGINT,"
             + " TimeStamp         BIGINT)";
 //    String homeDir = System.getProperty("user.home") + "/.SIPS";
-    String homeDir =".build";
+    String homeDir = ".build";
     File file;
 
     public Visitor(File file) throws IOException {
         this.file = file;
+//        sqljdbc.setVerbose(true);
         homeDir = SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build";
-        String parentDir=file.getAbsoluteFile().getParentFile().getAbsolutePath();
+        String parentDir = file.getAbsoluteFile().getParentFile().getAbsolutePath();
 //        System.out.println("Length: "+parentDir.length());
-        parentDir=parentDir.substring(parentDir.lastIndexOf("src")+3);
+        parentDir = parentDir.substring(parentDir.lastIndexOf("src") + 3);
 //        System.out.println("Parent Dir: "+parentDir);
         databaseLoc = homeDir + "/.parsed/" + parentDir + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-parsed.db";
         File dbfile = new File(databaseLoc);
@@ -242,15 +243,15 @@ public class Visitor extends VoidVisitorAdapter {
         if (syntaxCounter == 0) {
 
             sqljdbc.createtable(databaseLoc, sql);
+            sqljdbc.closeConnection();
 
         }
 
-        sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
-                + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.toString() + "','" + System.currentTimeMillis() + "','ForLoop','0','NULL' );";
-        sqljdbc.insert(databaseLoc, sql);
-        sqljdbc.closeConnection();
-        syntaxCounter++;
-
+//        sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+//                + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.toString() + "','" + System.currentTimeMillis() + "','ForLoop','0','NULL' );";
+//        sqljdbc.insert(databaseLoc, sql);
+//        sqljdbc.closeConnection();
+//        syntaxCounter++;
         forcounter++;
 
         super.visit(n, arg);
@@ -310,17 +311,16 @@ public class Visitor extends VoidVisitorAdapter {
         if (syntaxCounter == 0) {
 
             sqljdbc.createtable(databaseLoc, sql);
+            sqljdbc.closeConnection();
 
         }
-        sqljdbc.closeConnection();
 
-        sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
-                + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.toString() + "','" + System.currentTimeMillis() + "','WhileLoop','0' ,'NULL' );";
-
-        sqljdbc.insert(databaseLoc, sql);
-        sqljdbc.closeConnection();
-        syntaxCounter++;
-
+//        sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+//                + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.toString() + "','" + System.currentTimeMillis() + "','WhileLoop','0' ,'NULL' );";
+//
+//        sqljdbc.insert(databaseLoc, sql);
+//        sqljdbc.closeConnection();
+//        syntaxCounter++;
         whilecounter++;
         super.visit(n, arg);
 
@@ -444,7 +444,7 @@ public class Visitor extends VoidVisitorAdapter {
                     sqljdbc.createtable(databaseLoc, sql);
 
                 }
-                sql = "SELECT * FROM SYNTAX WHERE BeginLine<='" + n.getBegin().get().line + "' AND EndLine<='" + n.getEnd().get().line + "';";
+                sql = "SELECT * FROM SYNTAX WHERE BeginLine<='" + n.getBegin().get().line + "' AND EndLine<='" + n.getEnd().get().line + "' AND Category='SimulateSection';";
                 ResultSet rs = sqljdbc.select(databaseLoc, sql);
                 int id = Integer.MIN_VALUE;
                 try {
@@ -454,6 +454,46 @@ public class Visitor extends VoidVisitorAdapter {
                     rs.close();
                     sqljdbc.closeConnection();
                     sql = "UPDATE SYNTAX SET EndLine='" + n.getEnd().get().line + "', EndColumn='" + n.getEnd().get().column + "', SIM='TRUE' WHERE ID='" + id + "';";
+                    sqljdbc.update(databaseLoc, sql);
+                    sqljdbc.closeConnection();
+
+                } catch (SQLException ex) {
+                    Logger.getLogger(Visitor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                //syntaxCounter++;
+            }
+            if (n.getNameAsString().contains("parallelFor") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+
+                    sqljdbc.createtable(databaseLoc, sql);
+
+                }
+
+                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + "','" + System.currentTimeMillis() + "','ParallelFor','0' ,'NULL' );";
+                sqljdbc.insert(databaseLoc, sql);
+                sqljdbc.closeConnection();
+                syntaxCounter++;
+            }
+
+            if (n.getNameAsString().contains("endParallelFor") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+
+                    sqljdbc.createtable(databaseLoc, sql);
+
+                }
+                sql = "SELECT * FROM SYNTAX WHERE BeginLine<='" + n.getBegin().get().line + "' AND EndLine<='" + n.getEnd().get().line + "'AND Category='ParallelFor';;";
+                ResultSet rs = sqljdbc.select(databaseLoc, sql);
+                int id = Integer.MIN_VALUE;
+                try {
+                    if (rs.next()) {
+                        id = rs.getInt("ID");
+                    }
+                    rs.close();
+                    sqljdbc.closeConnection();
+                    sql = "UPDATE SYNTAX SET EndLine='" + n.getEnd().get().line + "', EndColumn='" + n.getEnd().get().column + "', SIM='FALSE' WHERE ID='" + id + "';";
                     sqljdbc.update(databaseLoc, sql);
                     sqljdbc.closeConnection();
 

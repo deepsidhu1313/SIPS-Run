@@ -59,4 +59,52 @@ public class ParsedTasksDBRow {
         this.timeout = timeout;
     }
 
+    public JSONArray getResources() {
+        return resources;
+    }
+
+    public void setResources(JSONArray resources) {
+        this.resources = resources;
+    }
+
+    public JSONArray getFiles() {
+        return files;
+    }
+
+    public void setFiles(JSONArray files) {
+        this.files = files;
+    }
+
+    public ConcurrentHashMap<String, Integer> getBeginLine() {
+        return beginLine;
+    }
+
+    public void setBeginLine(ConcurrentHashMap<String, Integer> beginLine) {
+        this.beginLine = beginLine;
+    }
+
+    public ConcurrentHashMap<String, Integer> getBeginColumn() {
+        return beginColumn;
+    }
+
+    public void setBeginColumn(ConcurrentHashMap<String, Integer> beginColumn) {
+        this.beginColumn = beginColumn;
+    }
+
+    public ConcurrentHashMap<String, Integer> getEndColumn() {
+        return endColumn;
+    }
+
+    public void setEndColumn(ConcurrentHashMap<String, Integer> endColumn) {
+        this.endColumn = endColumn;
+    }
+
+    public ConcurrentHashMap<String, Integer> getEndLine() {
+        return endLine;
+    }
+
+    public void setEndLine(ConcurrentHashMap<String, Integer> endLine) {
+        this.endLine = endLine;
+    }
+
 }

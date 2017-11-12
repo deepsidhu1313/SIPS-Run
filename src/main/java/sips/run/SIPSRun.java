@@ -8,6 +8,7 @@ package sips.run;
 import in.co.s13.sips.run.settings.GlobalValues;
 import in.co.s13.sips.run.tools.GetJavaFiles;
 import in.co.s13.sips.run.tools.ParseJavaFile;
+import in.co.s13.sips.run.tools.PrepareFiles;
 import in.co.s13.sips.run.tools.Util;
 import java.io.File;
 import java.util.ArrayList;
@@ -30,8 +31,13 @@ public class SIPSRun {
 
     /**
      * @param args the command line arguments
+     * @throws java.lang.InterruptedException
      */
     public static void main(String[] args) throws InterruptedException {
+        SIPSRun sipsRun = new SIPSRun(args);
+    }
+
+    public SIPSRun(String[] args) throws InterruptedException {
         System.out.println("SIPS-Run");
         String manifestFile = "manifest.json";
         JSONObject manifestJSON = null;
@@ -77,6 +83,7 @@ public class SIPSRun {
         GetJavaFiles getJavaFiles = new GetJavaFiles();
         javaFiles = getJavaFiles.getJavaFiles(new File(MANIFEST_FILE.getParentFile(), "src").getAbsolutePath());
         System.out.println("List of Java Files:\n" + javaFiles);
+
         ExecutorService parserExecutor = Executors.newFixedThreadPool(javaFiles.size());
         levelDetectorExecutor = Executors.newFixedThreadPool(javaFiles.size());
         for (int i = 0; i < javaFiles.size(); i++) {
@@ -88,7 +95,14 @@ public class SIPSRun {
         parserExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         levelDetectorExecutor.shutdown();
         levelDetectorExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-
+        Util.copyFolder(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/src"), (new File(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build"), ("src/"))));
+        Util.copyFolder(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/lib"), (new File(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build"), ("lib/"))));
+        javaFiles = getJavaFiles.getJavaFiles(new File(MANIFEST_FILE.getParentFile(), ".build/src").getAbsolutePath());
+        System.out.println("List of Java Files:\n" + javaFiles);
+        for (int i = 0; i < javaFiles.size(); i++) {
+            String get = javaFiles.get(i);
+            PrepareFiles prepareFile = new PrepareFiles(PrepareFiles.MODE.COMMENT, new File(get));
+        }
     }
 
     public static void generateManifest(String projectName) {

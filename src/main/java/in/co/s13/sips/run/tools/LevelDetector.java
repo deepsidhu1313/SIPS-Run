@@ -122,6 +122,7 @@ public class LevelDetector implements Runnable {
                             //settings.outPrintln("Statisfied second Condition");
                             sql = "UPDATE SYNTAX set Level = " + level + " where ID = " + ids + ";";
                             db.update(databaseLoc, sql);
+                            db.closeConnection();
                         }
                     } else // if(bls>el) 
                     {
@@ -143,7 +144,6 @@ public class LevelDetector implements Runnable {
             }
 
         }
-        db.closeConnection();
     }
 
     public void printlevels() {

@@ -19,17 +19,13 @@ package in.co.s13.sips.run.tools;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author Navdeep Singh <navdeepsingh.sidhu95 at gmail.com>
- */
+
 public class Commentator {
 
     public Commentator(String file, int startline, int startcolumn, int endline, int endcolumn) {
@@ -59,7 +55,9 @@ public class Commentator {
                     body = true;
                 }
                 else if (lines == endline) {
+                    System.out.println("Before Comm: "+cursor);
                     cursor += "*/";
+                    System.out.println("After Comm: "+cursor);
                     body = false;
                 }
                 else if (body) {

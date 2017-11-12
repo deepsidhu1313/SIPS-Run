@@ -25,10 +25,6 @@ import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author Navdeep Singh <navdeepsingh.sidhu95 at gmail.com>
- */
 public class UnCommentator {
     
     public UnCommentator(String file, int startline, int startcolumn, int endline, int endcolumn) {
