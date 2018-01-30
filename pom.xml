@@ -163,5 +163,16 @@
             <artifactId>javaparser-core</artifactId>
             <version>3.5.2</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>SIPS-lib</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.11</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 </project>

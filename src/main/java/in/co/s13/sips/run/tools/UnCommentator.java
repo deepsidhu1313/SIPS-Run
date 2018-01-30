@@ -54,10 +54,10 @@ public class UnCommentator {
                     
                 }
                 
-                if ((cursor.contains("saveValues"))||(cursor.contains("saveObject"))) {
-                    cursor = "//" + cursor.substring(0);
-                    
-                }
+//                if ((cursor.contains("saveValues"))||(cursor.contains("saveObject"))) {
+//                    cursor = "//" + cursor.substring(0);
+//                    
+//                }
 
                 // count words
                 content += cursor+"\n";

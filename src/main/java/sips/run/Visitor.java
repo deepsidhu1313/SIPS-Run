@@ -12,6 +12,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.ClassExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
@@ -1089,39 +1090,39 @@ public class Visitor extends VoidVisitorAdapter {
 //    }
 //
 //    @Override
-//    public void visit(BinaryExpr n, Object Args) {
-//
-//        String sql = "";
-//
-//        sql = "CREATE TABLE BINARYEXP "
-//                + "(ID INT PRIMARY KEY     NOT NULL,"
-//                + " BinaryCounter            INT     NOT NULL, "
-//                + " BeginColumn           INT    NOT NULL, "
-//                + " BeginLine            INT     NOT NULL, "
-//                + " Class        TEXT, "
-//                + " DATA        TEXT, "
-//                + " EndColumn        INT, "
-//                + " EndLine        INT, "
-//                + " Left       TEXT, "
-//                + " Operator       TEXT, "
-//                + "Right TEXT, "
-//                + " String        TEXT, "
-//                + " TimeStamp         BIGINT)";
-//        if (binarycounter == 0) {
-//            sqljdbc.createtable(databaseLoc, sql);
-//        }
-//        sql = "INSERT INTO BINARYEXP (ID , BinaryCounter ,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine  ,Left,Operator,Right, String , TimeStamp) "
-//                + "VALUES ('" + binarycounter + "',' " + binarycounter + "',' " + n.getBeginColumn() + "',' " + n.getBeginLine() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getLeft() + "','" + n.getOperator() + "','" + n.getRight() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//
-//        //n.setOperator(BinaryExpr.Operator.or);
-//        binarycounter++;
-//
-//        super.visit(n, Args);
-//
-//    }
+    public void visit(BinaryExpr n, Object Args) {
+
+        String sql = "";
+
+        sql = "CREATE TABLE BINARYEXP "
+                + "(ID INT PRIMARY KEY     NOT NULL,"
+                + " BinaryCounter            INT     NOT NULL, "
+                + " BeginColumn           INT    NOT NULL, "
+                + " BeginLine            INT     NOT NULL, "
+                + " Class        TEXT, "
+                + " DATA        TEXT, "
+                + " EndColumn        INT, "
+                + " EndLine        INT, "
+                + " Left       TEXT, "
+                + " Operator       TEXT, "
+                + "Right TEXT, "
+                + " String        TEXT, "
+                + " TimeStamp         BIGINT)";
+        if (binarycounter == 0) {
+            sqljdbc.createtable(databaseLoc, sql);
+        }
+        sql = "INSERT INTO BINARYEXP (ID , BinaryCounter ,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine  ,Left,Operator,Right, String , TimeStamp) "
+                + "VALUES ('" + binarycounter + "',' " + binarycounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','" + n.getClass() + "','" + n.toString() + "','" + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.getLeft() + "','" + n.getOperator() + "','" + n.getRight() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
+
+        sqljdbc.insert(databaseLoc, sql);
+        sqljdbc.closeConnection();
+
+        //n.setOperator(BinaryExpr.Operator.or);
+        binarycounter++;
+//        System.out.println("Visited Binary " + n.toString());
+        super.visit(n, Args);
+
+    }
 //    @Override
 //    public void visit(BooleanLiteralExpr n, Object Args) {
 //
@@ -1152,6 +1153,7 @@ public class Visitor extends VoidVisitorAdapter {
 //
 //        super.visit(n, Args);
 //    }
+
     public void visit(MethodReferenceExpr n, Object arg) {
 //        System.out.println("" + n.getIdentifier());
         super.visit(n, arg);

@@ -19,6 +19,7 @@ package in.co.s13.sips.run.tools;
 import com.sun.management.OperatingSystemMXBean;
 import static in.co.s13.sips.run.settings.GlobalValues.OS;
 import static in.co.s13.sips.run.settings.GlobalValues.OS_Name;
+import java.io.BufferedOutputStream;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -30,6 +31,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
@@ -41,6 +44,11 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
 import org.json.JSONObject;
 
 /**
@@ -400,6 +408,64 @@ public class Util {
 
     }
 
+    public static Object deserialize(String fileName) throws IOException,
+            ClassNotFoundException {
+        FileInputStream fis = new FileInputStream(fileName);
+        ObjectInputStream ois = new ObjectInputStream(fis);
+        Object obj = ois.readObject();
+        ois.close();
+        return obj;
+    }
 
+    // serialize the given object and save it to file
+    public static void serialize(Object obj, String fileName)
+            throws IOException {
+        FileOutputStream fos = new FileOutputStream(fileName);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(obj);
+
+        fos.close();
+    }
+
+    public static void createTarGZ(String fileOrDir) {
+        File dirPath = new File(fileOrDir);
+        String tarGzPath = dirPath.getParent() + "/" + dirPath.getName() + ".tar.gz";
+        createTarGZ(fileOrDir, tarGzPath);
+    }
+
+    public static void createTarGZ(String fileOrDir, String ouputFile) {
+        File dirPath = new File(fileOrDir);
+        String tarGzPath = ouputFile;
+        try (FileOutputStream fOut = new FileOutputStream(new File(tarGzPath)); BufferedOutputStream bOut = new BufferedOutputStream(fOut); GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(bOut); TarArchiveOutputStream tOut = new TarArchiveOutputStream(gzOut)) {
+            addFileToTarGz(tOut, dirPath.getAbsolutePath(), "");
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static void addFileToTarGz(TarArchiveOutputStream tOut, String path, String base)
+            throws IOException {
+        File f = new File(path);
+//        System.out.println(f.exists());
+        String entryName = base + f.getName();
+        TarArchiveEntry tarEntry = new TarArchiveEntry(f, entryName);
+        tOut.putArchiveEntry(tarEntry);
+
+        if (f.isFile()) {
+            IOUtils.copy(new FileInputStream(f), tOut);
+            tOut.closeArchiveEntry();
+        } else {
+            tOut.closeArchiveEntry();
+            File[] children = f.listFiles();
+            if (children != null) {
+                for (File child : children) {
+//                    System.out.println(child.getName());
+                    addFileToTarGz(tOut, child.getAbsolutePath(), entryName + "/");
+                }
+            }
+        }
+    }
 
 }
