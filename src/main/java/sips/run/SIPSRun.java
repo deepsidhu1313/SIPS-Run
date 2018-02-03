@@ -169,6 +169,7 @@ public class SIPSRun {
         requestJson.put("Command", "CREATE_JOB_TOKEN");
         JSONObject requestBody = new JSONObject();
         requestBody.put("UUID", UUID);
+        requestBody.put("JOB_NAME", manifestJSON.getString("PROJECT", ""));
         requestJson.put("Body", requestBody);
         String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
         int taskPort = manifestJSON.getJSONObject("MASTER").getInt("TASK-PORT");
@@ -201,7 +202,7 @@ public class SIPSRun {
 
     public void getJobStatus(String jobToken) {
         String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
-        int taskPort = manifestJSON.getJSONObject("MASTER").getInt("API-PORT");
+        int apiPort = manifestJSON.getJSONObject("MASTER").getInt("API-PORT");
         String apiKey = manifestJSON.getJSONObject("MASTER").getString("API-KEY");
         JSONObject requestJson = new JSONObject();
         requestJson.put("Command", "JOB_STATUS");
@@ -209,7 +210,7 @@ public class SIPSRun {
         requestBody.put("UUID", UUID);
         requestBody.put("API_KEY",apiKey);
         requestJson.put("Body", requestBody);
-        JSONObject reply= sendCommand(ipaddress, taskPort, requestJson);
+        JSONObject reply= sendCommand(ipaddress, apiPort, requestJson);
     
     }
 
