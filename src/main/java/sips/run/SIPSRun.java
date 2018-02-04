@@ -57,7 +57,7 @@ public class SIPSRun {
 
     public SIPSRun(String[] args) throws InterruptedException {
         System.out.println("***************************************************************"
-                + "\n***************** SIPS-RUN ************************"
+                       + "\n************************ SIPS-RUN *****************************"
                 + "\n***************************************************************"
         );
         String manifestFile = "manifest.json";
@@ -88,10 +88,7 @@ public class SIPSRun {
                     createProject(arguments.get(arguments.indexOf("--create") + 1));
                     System.exit(0);
                 }
-                if (arguments.contains("--clean")) {
-                    System.out.println("Deleting .build directory " + Util.deleteDirectory(new File(MANIFEST_FILE.getParentFile(), ".build/")));
-                }
-
+                
                 if (arguments.contains("--manifest")) {
                     int index = arguments.indexOf("--manifest");
                     manifestFile = arguments.get(index + 1);
@@ -104,7 +101,12 @@ public class SIPSRun {
                     manifestJSON = Util.readJSONFile(manifestFile);
 
                 }
+                 MANIFEST_FILE = new File(new File(manifestFile).getAbsolutePath());
+                if (arguments.contains("--clean")) {
+                    System.out.println("Deleting .build directory " + Util.deleteDirectory(new File(MANIFEST_FILE.getParentFile(), ".build/")));
+                }
 
+                
                 if (arguments.contains("--get-job-status")) {
                     System.out.println("Last Job Status:\n ");
                     System.exit(0);
@@ -131,26 +133,26 @@ public class SIPSRun {
                 + "\n***************************************************************"
         );
         prepareFiles(args);
-        System.out.println("***************************************************************"
+        System.out.println("\n***************************************************************"
                 + "\n***************** Requesting Job Token ************************"
                 + "\n***************************************************************"
         );
         String jobToken = createJobToken();
-        System.out.println("***************************************************************"
-                + "\n** Received Job Token " + jobToken + " **"
+        System.out.println("\n***************************************************************"
+                + "\n*** Received Job Token " + jobToken + " ***"
                 + "\n************** Use This Token to get Status *******************"
                 + "\n***************************************************************"
         );
-        System.out.println("***************************************************************"
+        System.out.println("\n***************************************************************"
                 + "\n************* Uploading Job to " + manifestJSON.getJSONObject("MASTER").getString("HOST") + " ********************"
                 + "\n***************************************************************"
         );
-        System.out.println("***************************************************************"
-                + "\n************* Generating Checksums ********************"
+        System.out.println("\n***************************************************************"
+                       + "\n****************** Generating Checksums ***********************"
                 + "\n***************************************************************"
         );
         generateChecksums(new File(MANIFEST_FILE.getParentFile(), ".build/").getAbsolutePath());
-        uploadJob(jobToken);
+        //uploadJob(jobToken);
     }
 
     public void generateChecksums(String path) throws InterruptedException {
@@ -162,13 +164,6 @@ public class SIPSRun {
         }
 
         if (file.isDirectory()) {
-            executorService.submit(() -> {
-                try {
-                    generateChecksums(file.getAbsolutePath());
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(SIPSRun.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            });
             File files[] = file.listFiles();
             for (File file1 : files) {
                 if (file1.isDirectory()) {
@@ -180,9 +175,11 @@ public class SIPSRun {
                         }
                     });
                 } else {
-                    executorService.submit(() -> {
-                        Util.getCheckSum(file1.getAbsolutePath());
-                    });
+                    if (!file1.getName().endsWith(".sha")) {
+                        executorService.submit(() -> {
+                            Util.getCheckSum(file1.getAbsolutePath());
+                        });
+                    }
                 }
             }
         } else {

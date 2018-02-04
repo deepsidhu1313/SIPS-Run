@@ -234,7 +234,7 @@ public class Util {
 
     public static String getCheckSum(String datafile) {
         StringBuilder sb = new StringBuilder("");
-        if (datafile.substring(datafile.lastIndexOf(".")).equalsIgnoreCase("sha")) {
+        if (datafile.endsWith(".sha")) {
             System.out.println("Didn't computed CheckSum for " + datafile);
             return "";
         }
@@ -256,7 +256,7 @@ public class Util {
                 sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
             }
 
-            System.out.println("Digest(in hex format):: " + sb.toString());
+            //System.out.println("Digest(in hex format):: " + sb.toString());
         } catch (NoSuchAlgorithmException | IOException ex) {
             Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
         }
