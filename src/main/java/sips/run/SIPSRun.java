@@ -43,8 +43,9 @@ public class SIPSRun {
     public static ExecutorService levelDetectorExecutor;
     public static JSONObject manifestJSON = null;
     public static JSONObject settingsJSON = null;
-    public static JSONObject recentJobsJSON = null;
+//    public static JSONObject recentJobsJSON = null;
     public static String UUID, API_KEY;
+    public static String RECENT_JOBS_DB = System.getProperty("user.home") + "/.sips/sips-run-recent.db";
 
     /**
      * @param args the command line arguments
@@ -55,10 +56,17 @@ public class SIPSRun {
     }
 
     public SIPSRun(String[] args) throws InterruptedException {
-        System.out.println("SIPS-Run");
+        System.out.println("***************************************************************"
+                + "\n***************** SIPS-RUN ************************"
+                + "\n***************************************************************"
+        );
         String manifestFile = "manifest.json";
+        File SIPSDir = new File(System.getProperty("user.home") + "/.sips/");
+        if (!SIPSDir.exists()) {
+            SIPSDir.mkdirs();
+        }
         settingsJSON = Util.readJSONFile(System.getProperty("user.home") + "/.sips/sips-run.json");
-        recentJobsJSON = Util.readJSONFile(System.getProperty("user.home") + "/.sips/sips-run-recent.json");
+        //recentJobsJSON = Util.readJSONFile(System.getProperty("user.home") + "/.sips/sips-run-recent.json");
         UUID = settingsJSON.getString("UUID", "");
         if (UUID.trim().length() < 1) {
             UUID = Util.generateNodeUUID();
@@ -96,15 +104,15 @@ public class SIPSRun {
                     manifestJSON = Util.readJSONFile(manifestFile);
 
                 }
-                
+
                 if (arguments.contains("--get-job-status")) {
-                    System.out.println("Last Job Status:\n " );
-                System.exit(0);
+                    System.out.println("Last Job Status:\n ");
+                    System.exit(0);
                 }
-                
+
                 if (arguments.contains("--view-recent-jobs")) {
                     System.out.println("Recent Jobs:\n ");
-                System.exit(0);
+                    System.exit(0);
                 }
                 GlobalValues.MANIFEST_JSON = manifestJSON;
 
@@ -118,12 +126,26 @@ public class SIPSRun {
             GlobalValues.MANIFEST_JSON = manifestJSON;
         }
         MANIFEST_FILE = new File(new File(manifestFile).getAbsolutePath());
+        System.out.println("***************************************************************"
+                + "\n******************* Preparing Files ***************************"
+                + "\n***************************************************************"
+        );
         prepareFiles(args);
+        System.out.println("***************************************************************"
+                + "\n***************** Requesting Job Token ************************"
+                + "\n***************************************************************"
+        );
+        String jobToken = createJobToken();
+        System.out.println("***************************************************************"
+                + "\n** Received Job Token " + jobToken + " **"
+                + "\n************** Use This Token to get Status *******************"
+                + "\n***************************************************************"
+        );
 
     }
-    
-    public void prepareFiles(String[] args) throws InterruptedException{
-    GetJavaFiles getJavaFiles = new GetJavaFiles();
+
+    public void prepareFiles(String[] args) throws InterruptedException {
+        GetJavaFiles getJavaFiles = new GetJavaFiles();
         javaFiles = getJavaFiles.getJavaFiles(new File(MANIFEST_FILE.getParentFile(), "src").getAbsolutePath());
         System.out.println("List of Java Files:\n" + javaFiles);
 
@@ -164,16 +186,19 @@ public class SIPSRun {
         }
     }
 
-    public void createJobToken() {
+    public String createJobToken() {
         JSONObject requestJson = new JSONObject();
         requestJson.put("Command", "CREATE_JOB_TOKEN");
         JSONObject requestBody = new JSONObject();
         requestBody.put("UUID", UUID);
-        requestBody.put("JOB_NAME", manifestJSON.getString("PROJECT", ""));
+        requestBody.put("SCHEDULER", manifestJSON.getJSONObject("SCHEDULER", new JSONObject()).getString("Name", "NotFound"));
+        requestBody.put("JOB_NAME", manifestJSON.getString("PROJECT", "NotFound"));
         requestJson.put("Body", requestBody);
         String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
         int taskPort = manifestJSON.getJSONObject("MASTER").getInt("TASK-PORT");
-        JSONObject reply= sendCommand(ipaddress, taskPort, requestJson);
+        JSONObject reply = sendCommand(ipaddress, taskPort, requestJson);
+        String token = reply.getJSONObject("Response").getString("Token", "NotFound");
+        return token;
     }
 
     public void uploadJob(String jobToken) {
@@ -181,14 +206,15 @@ public class SIPSRun {
         requestJson.put("Command", "UPLOAD_JOB");
         JSONObject requestBody = new JSONObject();
         requestBody.put("UUID", UUID);
+        requestBody.put("JobToken", jobToken);
         requestJson.put("Body", requestBody);
         String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
         int taskPort = manifestJSON.getJSONObject("MASTER").getInt("TASK-PORT");
-        JSONObject reply= sendCommand(ipaddress, taskPort, requestJson);
-    
+        JSONObject reply = sendCommand(ipaddress, taskPort, requestJson);
+
     }
-    
-      public void uploadScheduler(String jobToken) {
+
+    public void uploadScheduler(String jobToken) {
         JSONObject requestJson = new JSONObject();
         requestJson.put("Command", "UPLOAD_SCHEDULER");
         JSONObject requestBody = new JSONObject();
@@ -196,8 +222,8 @@ public class SIPSRun {
         requestJson.put("Body", requestBody);
         String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
         int taskPort = manifestJSON.getJSONObject("MASTER").getInt("TASK-PORT");
-        JSONObject reply= sendCommand(ipaddress, taskPort, requestJson);
-    
+        JSONObject reply = sendCommand(ipaddress, taskPort, requestJson);
+
     }
 
     public void getJobStatus(String jobToken) {
@@ -208,10 +234,10 @@ public class SIPSRun {
         requestJson.put("Command", "JOB_STATUS");
         JSONObject requestBody = new JSONObject();
         requestBody.put("UUID", UUID);
-        requestBody.put("API_KEY",apiKey);
+        requestBody.put("API_KEY", apiKey);
         requestJson.put("Body", requestBody);
-        JSONObject reply= sendCommand(ipaddress, apiPort, requestJson);
-    
+        JSONObject reply = sendCommand(ipaddress, apiPort, requestJson);
+
     }
 
     public JSONObject sendCommand(String host, int port, JSONObject requestJson) {
@@ -239,7 +265,7 @@ public class SIPSRun {
         } catch (IOException ex) {
             Logger.getLogger(SIPSRun.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return null;
+        return new JSONObject();
     }
 
     public void createSchedulerObject() throws MalformedURLException, ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
