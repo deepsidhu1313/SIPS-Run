@@ -141,7 +141,57 @@ public class SIPSRun {
                 + "\n************** Use This Token to get Status *******************"
                 + "\n***************************************************************"
         );
+        System.out.println("***************************************************************"
+                + "\n************* Uploading Job to " + manifestJSON.getJSONObject("MASTER").getString("HOST") + " ********************"
+                + "\n***************************************************************"
+        );
+        System.out.println("***************************************************************"
+                + "\n************* Generating Checksums ********************"
+                + "\n***************************************************************"
+        );
+        generateChecksums(new File(MANIFEST_FILE.getParentFile(), ".build/").getAbsolutePath());
+        uploadJob(jobToken);
+    }
 
+    public void generateChecksums(String path) throws InterruptedException {
+        int TASK_LIMIT = (Runtime.getRuntime().availableProcessors() - 2) < 1 ? 1 : (Runtime.getRuntime().availableProcessors() - 2);
+        ExecutorService executorService = Executors.newFixedThreadPool(TASK_LIMIT);
+        File file = new File(path);
+        if (!file.exists()) {
+            System.err.println("File or Dir Doesn't Exist : " + file.getAbsolutePath());
+        }
+
+        if (file.isDirectory()) {
+            executorService.submit(() -> {
+                try {
+                    generateChecksums(file.getAbsolutePath());
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(SIPSRun.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            });
+            File files[] = file.listFiles();
+            for (File file1 : files) {
+                if (file1.isDirectory()) {
+                    executorService.submit(() -> {
+                        try {
+                            generateChecksums(file1.getAbsolutePath());
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(SIPSRun.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    });
+                } else {
+                    executorService.submit(() -> {
+                        Util.getCheckSum(file1.getAbsolutePath());
+                    });
+                }
+            }
+        } else {
+            executorService.submit(() -> {
+                Util.getCheckSum(file.getAbsolutePath());
+            });
+        }
+        executorService.shutdown();
+        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
     }
 
     public void prepareFiles(String[] args) throws InterruptedException {

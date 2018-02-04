@@ -257,11 +257,7 @@ public class Util {
             }
 
             System.out.println("Digest(in hex format):: " + sb.toString());
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
+        } catch (NoSuchAlgorithmException | IOException ex) {
             Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
         }
         saveCheckSum(datafile + ".sha", sb.toString());
