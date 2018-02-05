@@ -164,9 +164,9 @@
             <version>3.5.2</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>in.co.s13</groupId>
             <artifactId>SIPS-lib</artifactId>
-            <version>${project.version}</version>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

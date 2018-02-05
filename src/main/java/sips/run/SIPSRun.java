@@ -242,7 +242,7 @@ public class SIPSRun {
         requestBody.put("JOB_NAME", manifestJSON.getString("PROJECT", "NotFound"));
         requestJson.put("Body", requestBody);
         String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
-        int taskPort = manifestJSON.getJSONObject("MASTER").getInt("TASK-PORT");
+        int taskPort = manifestJSON.getJSONObject("MASTER").getInt("JOB-PORT");
         JSONObject reply = sendCommand(ipaddress, taskPort, requestJson);
         String token = reply.getJSONObject("Response").getString("Token", "NotFound");
         return token;
@@ -256,7 +256,7 @@ public class SIPSRun {
         requestBody.put("JobToken", jobToken);
         requestJson.put("Body", requestBody);
         String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
-        int taskPort = manifestJSON.getJSONObject("MASTER").getInt("TASK-PORT");
+        int taskPort = manifestJSON.getJSONObject("MASTER").getInt("JOB-PORT");
         JSONObject reply = sendCommand(ipaddress, taskPort, requestJson);
 
     }
@@ -268,7 +268,7 @@ public class SIPSRun {
         requestBody.put("UUID", UUID);
         requestJson.put("Body", requestBody);
         String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
-        int taskPort = manifestJSON.getJSONObject("MASTER").getInt("TASK-PORT");
+        int taskPort = manifestJSON.getJSONObject("MASTER").getInt("JOB-PORT");
         JSONObject reply = sendCommand(ipaddress, taskPort, requestJson);
 
     }
@@ -353,7 +353,7 @@ public class SIPSRun {
         manifest.put("SCHEDULER", scheduler);
         JSONObject master = new JSONObject();
         master.put("HOST", "127.0.0.1");
-        master.put("TASK-PORT", "13133");
+        master.put("JOB-PORT", "13136");
         master.put("API-PORT", "13139");
         master.put("API-KEY", "");
         manifest.put("MASTER", master);
