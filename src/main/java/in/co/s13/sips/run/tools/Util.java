@@ -265,7 +265,11 @@ public class Util {
     }
 
     public static String LoadCheckSum(String ld) {
-        return readFile(ld);
+        File f = new File(ld);
+        if (!f.exists()) {
+            Util.getCheckSum(ld.substring(0, ld.length()-3));
+        }
+        return readFile(ld).trim();
     }
 
     public static String readFile(String location) {

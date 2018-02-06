@@ -12,9 +12,12 @@ import in.co.s13.sips.run.tools.PrepareFiles;
 import in.co.s13.sips.run.tools.Util;
 import in.co.s13.sips.scheduler.LoadScheduler;
 import in.co.s13.sips.scheduler.Scheduler;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -44,7 +47,7 @@ public class SIPSRun {
     public static JSONObject manifestJSON = null;
     public static JSONObject settingsJSON = null;
 //    public static JSONObject recentJobsJSON = null;
-    public static String UUID, API_KEY;
+    public static String UUID, API_KEY, JOB_TOKEN;
     public static String RECENT_JOBS_DB = System.getProperty("user.home") + "/.sips/sips-run-recent.db";
 
     /**
@@ -57,7 +60,7 @@ public class SIPSRun {
 
     public SIPSRun(String[] args) throws InterruptedException {
         System.out.println("***************************************************************"
-                       + "\n************************ SIPS-RUN *****************************"
+                + "\n************************ SIPS-RUN *****************************"
                 + "\n***************************************************************"
         );
         String manifestFile = "manifest.json";
@@ -74,11 +77,13 @@ public class SIPSRun {
             settingsJSON.put("UUID", UUID);
             Util.write(System.getProperty("user.home") + "/.sips/sips-run.json", settingsJSON.toString(4));
         }
-        if (args.length > 0) {
+        //if (args.length > 0)
+        {
             ArrayList<String> arguments = new ArrayList<>();
             Collections.addAll(arguments, args);
 
-            if (arguments.size() > 0) {
+//            if (arguments.size() > 0) 
+            {
                 if (arguments.contains("--generate-manifest")) {
                     generateManifest("");
                     System.exit(0);
@@ -88,7 +93,7 @@ public class SIPSRun {
                     createProject(arguments.get(arguments.indexOf("--create") + 1));
                     System.exit(0);
                 }
-                
+
                 if (arguments.contains("--manifest")) {
                     int index = arguments.indexOf("--manifest");
                     manifestFile = arguments.get(index + 1);
@@ -99,14 +104,33 @@ public class SIPSRun {
                         System.exit(1);
                     }
                     manifestJSON = Util.readJSONFile(manifestFile);
-
+                    
                 }
-                 MANIFEST_FILE = new File(new File(manifestFile).getAbsolutePath());
+                MANIFEST_FILE = new File(new File(manifestFile).getAbsolutePath());
                 if (arguments.contains("--clean")) {
-                    System.out.println("Deleting .build directory " + Util.deleteDirectory(new File(MANIFEST_FILE.getParentFile(), ".build/")));
+                    System.out.println("\n***************************************************************"
+                            + "\n******************* Cleaning Project **************************"
+                            + "\n**************** Deleted .build directory " + Util.deleteDirectory(new File(MANIFEST_FILE.getParentFile(), ".build/")) + " ****************"
+                            + "\n***************************************************************"
+                    );
                 }
 
-                
+                if (arguments.contains("--job-token")) {
+                    int index = arguments.indexOf("--job-token");
+                    JOB_TOKEN = arguments.get(index + 1);
+                } else {
+                    System.out.println("\n***************************************************************"
+                            + "\n***************** Requesting Job Token ************************"
+                            + "\n***************************************************************"
+                    );
+                    JOB_TOKEN = createJobToken();
+                    System.out.println("\n***************************************************************"
+                            + "\n*** Received Job Token " + JOB_TOKEN + " ***"
+                            + "\n************** Use This Token to get Status *******************"
+                            + "\n***************************************************************"
+                    );
+                }
+
                 if (arguments.contains("--get-job-status")) {
                     System.out.println("Last Job Status:\n ");
                     System.exit(0);
@@ -116,43 +140,36 @@ public class SIPSRun {
                     System.out.println("Recent Jobs:\n ");
                     System.exit(0);
                 }
-                GlobalValues.MANIFEST_JSON = manifestJSON;
 
             }
-        } else {
-            if (!new File(manifestFile).exists()) {
-                System.err.println("manifest.json Not Found");
-                System.exit(1);
-            }
-            manifestJSON = Util.readJSONFile(manifestFile);
-            GlobalValues.MANIFEST_JSON = manifestJSON;
         }
+//        else {
+//            if (!new File(manifestFile).exists()) {
+//                System.err.println("manifest.json Not Found");
+//                System.exit(1);
+//            }
+//            manifestJSON = Util.readJSONFile(manifestFile);
+//            GlobalValues.MANIFEST_JSON = manifestJSON;
+//        }
         MANIFEST_FILE = new File(new File(manifestFile).getAbsolutePath());
-        System.out.println("***************************************************************"
+//        manifestJSON = Util.readJSONFile(manifestFile);
+        GlobalValues.MANIFEST_JSON = manifestJSON;
+        System.out.println("\n***************************************************************"
                 + "\n******************* Preparing Files ***************************"
                 + "\n***************************************************************"
         );
         prepareFiles(args);
+
         System.out.println("\n***************************************************************"
-                + "\n***************** Requesting Job Token ************************"
-                + "\n***************************************************************"
-        );
-        String jobToken = createJobToken();
-        System.out.println("\n***************************************************************"
-                + "\n*** Received Job Token " + jobToken + " ***"
-                + "\n************** Use This Token to get Status *******************"
+                + "\n************** Uploading Job to " + manifestJSON.getJSONObject("MASTER").getString("HOST") + " *********************"
                 + "\n***************************************************************"
         );
         System.out.println("\n***************************************************************"
-                + "\n************* Uploading Job to " + manifestJSON.getJSONObject("MASTER").getString("HOST") + " ********************"
-                + "\n***************************************************************"
-        );
-        System.out.println("\n***************************************************************"
-                       + "\n****************** Generating Checksums ***********************"
+                + "\n****************** Generating Checksums ***********************"
                 + "\n***************************************************************"
         );
         generateChecksums(new File(MANIFEST_FILE.getParentFile(), ".build/").getAbsolutePath());
-        //uploadJob(jobToken);
+        uploadFiles(new File(MANIFEST_FILE.getParentFile(), ".build/").getAbsolutePath());
     }
 
     public void generateChecksums(String path) throws InterruptedException {
@@ -189,6 +206,93 @@ public class SIPSRun {
         }
         executorService.shutdown();
         executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+    }
+
+    public void uploadFiles(String path) throws InterruptedException {
+        int TASK_LIMIT = (Runtime.getRuntime().availableProcessors() - 2) < 1 ? 1 : (Runtime.getRuntime().availableProcessors() - 2);
+        ExecutorService executorService = Executors.newFixedThreadPool(TASK_LIMIT);
+        File file = new File(path);
+        if (!file.exists()) {
+            System.err.println("File or Dir Doesn't Exist : " + file.getAbsolutePath());
+        }
+
+        if (file.isDirectory()) {
+            File files[] = file.listFiles();
+            for (File file1 : files) {
+                if (file1.isDirectory()) {
+                    executorService.submit(() -> {
+                        try {
+                            uploadFiles(file1.getAbsolutePath());
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(SIPSRun.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    });
+                } else {
+                    if (!file1.getName().endsWith(".sha")) {
+                        executorService.submit(() -> {
+                            uploadFile(file1.getAbsolutePath());
+                        });
+                    }
+                }
+            }
+        } else {
+            executorService.submit(() -> {
+                uploadFile(file.getAbsolutePath());
+            });
+        }
+        executorService.shutdown();
+        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+    }
+
+    public void uploadFile(String path) {
+        try (Socket socket = new Socket()) {
+            String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
+            int taskPort = manifestJSON.getJSONObject("MASTER").getInt("JOB-PORT");
+
+            socket.connect(new InetSocketAddress(ipaddress, taskPort));
+            try (OutputStream os = socket.getOutputStream(); DataInputStream dIn = new DataInputStream(socket.getInputStream()); DataOutputStream outToServer = new DataOutputStream(os)) {
+                JSONObject requestJson = new JSONObject();
+                requestJson.put("Command", "UPLOAD_FILE");
+                JSONObject requestBody = new JSONObject();
+                requestBody.put("UUID", UUID);
+                requestBody.put("JOB_NAME", manifestJSON.getString("PROJECT", "NotFound"));
+                requestBody.put("SHA", Util.LoadCheckSum(path + ".sha"));
+                requestBody.put("PATH", path.substring(path.lastIndexOf(".build/") + 7));
+                requestBody.put("JOB_TOKEN", JOB_TOKEN);
+                requestJson.put("Body", requestBody);
+                String sendmsg = requestJson.toString();
+                byte[] bytes = sendmsg.getBytes("UTF-8");
+                outToServer.writeInt(bytes.length);
+                outToServer.write(bytes);
+
+                int length = dIn.readInt();                    // read length of incoming message
+                byte[] message = new byte[length];
+
+                if (length > 0) {
+                    dIn.readFully(message, 0, message.length); // read the message
+                }
+                JSONObject reply = new JSONObject(new String(message));
+                String responseMessage = reply.getJSONObject("Body", new JSONObject()).getJSONObject("Response").getString("Message", "NotFound");
+
+                if (responseMessage.equalsIgnoreCase("SEND_NEW")) {
+                    File fileToSend = new File(path);
+                    long flength = fileToSend.length();
+                    outToServer.writeLong(flength);
+                    try (FileInputStream fis = new FileInputStream(fileToSend); BufferedInputStream bis = new BufferedInputStream(fis); BufferedOutputStream bos = new BufferedOutputStream(os)) {
+                        System.out.println("Uploading " + fileToSend + "(" + fileToSend.length() + " bytes)");
+                        int count;
+                        byte[] mybytearray = new byte[16 * 1024];
+                        while ((count = bis.read(mybytearray)) > -1) {
+                            bos.write(mybytearray, 0, count);
+                        }
+                        bos.flush();
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(SIPSRun.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void prepareFiles(String[] args) throws InterruptedException {
@@ -228,8 +332,10 @@ public class SIPSRun {
         }
         try {
             createSchedulerObject();
+
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IOException ex) {
-            Logger.getLogger(SIPSRun.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SIPSRun.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -306,11 +412,15 @@ public class SIPSRun {
                 JSONObject reply = new JSONObject(new String(message));
                 //System.out.println(""+reply.toString(4));
                 return reply.getJSONObject("Body", new JSONObject());
+
             } catch (Exception e) {
-                Logger.getLogger(SIPSRun.class.getName()).log(Level.SEVERE, null, e);
+                Logger.getLogger(SIPSRun.class
+                        .getName()).log(Level.SEVERE, null, e);
+
             }
         } catch (IOException ex) {
-            Logger.getLogger(SIPSRun.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SIPSRun.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
         return new JSONObject();
     }
