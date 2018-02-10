@@ -49,7 +49,8 @@ public class SIPSRun {
 //    public static JSONObject recentJobsJSON = null;
     public static String UUID, API_KEY, JOB_TOKEN;
     public static String RECENT_JOBS_DB = System.getProperty("user.home") + "/.sips/sips-run-recent.db";
-
+    int PARALLELISM_THRESHOLD = (Runtime.getRuntime().availableProcessors() - 2) < 1 ? 1 : (Runtime.getRuntime().availableProcessors() - 2);
+        
     /**
      * @param args the command line arguments
      * @throws java.lang.InterruptedException
@@ -130,7 +131,12 @@ public class SIPSRun {
                             + "\n***************************************************************"
                     );
                 }
-
+                
+                if (arguments.contains("--parallelism")) {
+                    int index = arguments.indexOf("--parallelism");
+                    PARALLELISM_THRESHOLD = Integer.parseInt(arguments.get(index + 1).trim());
+                }
+                
                 if (arguments.contains("--get-job-status")) {
                     System.out.println("Last Job Status:\n ");
                     System.exit(0);
@@ -179,8 +185,7 @@ public class SIPSRun {
     }
 
     public void generateChecksums(String path) throws InterruptedException {
-        int TASK_LIMIT = (Runtime.getRuntime().availableProcessors() - 2) < 1 ? 1 : (Runtime.getRuntime().availableProcessors() - 2);
-        ExecutorService executorService = Executors.newFixedThreadPool(TASK_LIMIT);
+        ExecutorService executorService = Executors.newFixedThreadPool(PARALLELISM_THRESHOLD);
         File file = new File(path);
         if (!file.exists()) {
             System.err.println("File or Dir Doesn't Exist : " + file.getAbsolutePath());
@@ -215,8 +220,7 @@ public class SIPSRun {
     }
 
     public void uploadFiles(String path) throws InterruptedException {
-        int TASK_LIMIT = (Runtime.getRuntime().availableProcessors() - 2) < 1 ? 1 : (Runtime.getRuntime().availableProcessors() - 2);
-        ExecutorService executorService = Executors.newFixedThreadPool(TASK_LIMIT);
+        ExecutorService executorService = Executors.newFixedThreadPool(PARALLELISM_THRESHOLD);
         File file = new File(path);
         if (!file.exists()) {
             System.err.println("File or Dir Doesn't Exist : " + file.getAbsolutePath());
@@ -319,6 +323,7 @@ public class SIPSRun {
         levelDetectorExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         Util.copyFolder(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/src"), (new File(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build"), ("src/"))));
         Util.copyFolder(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/lib"), (new File(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build"), ("lib/"))));
+        Util.copyFolder(MANIFEST_FILE, (new File(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build"), ("manifest.json"))));
         javaFiles = getJavaFiles.getJavaFiles(new File(MANIFEST_FILE.getParentFile(), ".build/src").getAbsolutePath());
         System.out.println("List of Java Files:\n" + javaFiles);
         /**
