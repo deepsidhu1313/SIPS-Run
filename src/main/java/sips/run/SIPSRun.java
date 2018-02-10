@@ -170,6 +170,12 @@ public class SIPSRun {
         );
         generateChecksums(new File(MANIFEST_FILE.getParentFile(), ".build/").getAbsolutePath());
         uploadFiles(new File(MANIFEST_FILE.getParentFile(), ".build/").getAbsolutePath());
+        System.out.println("\n***************************************************************"
+                + "\n*********************** Starting Job **************************"
+                + "\n***************************************************************"
+        );
+        startJob(JOB_TOKEN);
+        
     }
 
     public void generateChecksums(String path) throws InterruptedException {
@@ -354,12 +360,12 @@ public class SIPSRun {
         return token;
     }
 
-    public void uploadJob(String jobToken) {
+    public void startJob(String jobToken) {
         JSONObject requestJson = new JSONObject();
-        requestJson.put("Command", "UPLOAD_JOB");
+        requestJson.put("Command", "START_JOB");
         JSONObject requestBody = new JSONObject();
         requestBody.put("UUID", UUID);
-        requestBody.put("JobToken", jobToken);
+        requestBody.put("JOB_TOKEN", jobToken);
         requestJson.put("Body", requestBody);
         String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
         int taskPort = manifestJSON.getJSONObject("MASTER").getInt("JOB-PORT");
