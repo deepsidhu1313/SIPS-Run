@@ -50,7 +50,7 @@ public class SIPSRun {
     public static String UUID, API_KEY, JOB_TOKEN;
     public static String RECENT_JOBS_DB = System.getProperty("user.home") + "/.sips/sips-run-recent.db";
     int PARALLELISM_THRESHOLD = (Runtime.getRuntime().availableProcessors() - 2) < 1 ? 1 : (Runtime.getRuntime().availableProcessors() - 2);
-        
+
     /**
      * @param args the command line arguments
      * @throws java.lang.InterruptedException
@@ -85,6 +85,13 @@ public class SIPSRun {
 
 //            if (arguments.size() > 0) 
             {
+                if (arguments.contains("--get-job-status")) {
+                    int index = arguments.indexOf("--get-job-status");
+                    String jobToken = arguments.get(index + 1);
+                    System.out.println("Last Job Status :\n " + getJobStatus(jobToken).toString(4));
+                    System.exit(0);
+                }
+
                 if (arguments.contains("--generate-manifest")) {
                     generateManifest("");
                     System.exit(0);
@@ -105,7 +112,7 @@ public class SIPSRun {
                         System.exit(1);
                     }
                     manifestJSON = Util.readJSONFile(manifestFile);
-                    
+
                 }
                 MANIFEST_FILE = new File(new File(manifestFile).getAbsolutePath());
                 if (arguments.contains("--clean")) {
@@ -131,15 +138,10 @@ public class SIPSRun {
                             + "\n***************************************************************"
                     );
                 }
-                
+
                 if (arguments.contains("--parallelism")) {
                     int index = arguments.indexOf("--parallelism");
                     PARALLELISM_THRESHOLD = Integer.parseInt(arguments.get(index + 1).trim());
-                }
-                
-                if (arguments.contains("--get-job-status")) {
-                    System.out.println("Last Job Status:\n ");
-                    System.exit(0);
                 }
 
                 if (arguments.contains("--view-recent-jobs")) {
@@ -181,7 +183,7 @@ public class SIPSRun {
                 + "\n***************************************************************"
         );
         startJob(JOB_TOKEN);
-        
+
     }
 
     public void generateChecksums(String path) throws InterruptedException {
@@ -378,6 +380,19 @@ public class SIPSRun {
 
     }
 
+    public JSONObject getJobStatus(String jobToken) {
+        JSONObject requestJson = new JSONObject();
+        requestJson.put("Command", "GET_JOB_STATUS");
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("UUID", UUID);
+        requestBody.put("JOB_TOKEN", jobToken);
+        requestJson.put("Body", requestBody);
+        String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
+        int taskPort = manifestJSON.getJSONObject("MASTER").getInt("JOB-PORT");
+        JSONObject reply = sendCommand(ipaddress, taskPort, requestJson);
+        return new JSONObject(reply.getJSONObject("Response", new JSONObject()).getString("Message", ""));
+    }
+
     public void uploadScheduler(String jobToken) {
         JSONObject requestJson = new JSONObject();
         requestJson.put("Command", "UPLOAD_SCHEDULER");
@@ -387,20 +402,6 @@ public class SIPSRun {
         String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
         int taskPort = manifestJSON.getJSONObject("MASTER").getInt("JOB-PORT");
         JSONObject reply = sendCommand(ipaddress, taskPort, requestJson);
-
-    }
-
-    public void getJobStatus(String jobToken) {
-        String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
-        int apiPort = manifestJSON.getJSONObject("MASTER").getInt("API-PORT");
-        String apiKey = manifestJSON.getJSONObject("MASTER").getString("API-KEY");
-        JSONObject requestJson = new JSONObject();
-        requestJson.put("Command", "JOB_STATUS");
-        JSONObject requestBody = new JSONObject();
-        requestBody.put("UUID", UUID);
-        requestBody.put("API_KEY", apiKey);
-        requestJson.put("Body", requestBody);
-        JSONObject reply = sendCommand(ipaddress, apiPort, requestJson);
 
     }
 
@@ -469,7 +470,7 @@ public class SIPSRun {
         manifest.put("JVMARGS", new JSONArray());
         manifest.put("OUTPUTFREQUENCY", 100);
         JSONObject scheduler = new JSONObject();
-        scheduler.put("Name", "in.co.s13.sips.schedulers.chunk");
+        scheduler.put("Name", "in.co.s13.sips.schedulers.Chunk");
         scheduler.put("MaxNodes", "4");
         manifest.put("SCHEDULER", scheduler);
         JSONObject master = new JSONObject();
