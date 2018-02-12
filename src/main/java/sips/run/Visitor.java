@@ -1014,47 +1014,34 @@ public class Visitor extends VoidVisitorAdapter {
         super.visit(n, Args);
     }
 
-//    @Override
-//    public void visit(VariableDeclarator n, Object Args) {
-//        /* System.out.println(n.getBeginColumn());
-//         System.out.println(n.getBeginLine());
-//         System.out.println(n.getClass());
-//         System.out.println(n.getData());
-//         System.out.println(n.getEndColumn());
-//         System.out.println(n.getEndLine());
-//         System.out.println(n.getId());
-//         System.out.println(n.getInit());
-//         System.out.println(n.toString());
-//         */
-//        // System.out.println("problem 0");
-//        String sql = "CREATE TABLE VARDEC "
-//                + "(ID INT PRIMARY KEY     NOT NULL,"
-//                + " VARDECCOUNTER           INT     NOT NULL, "
-//                + " BeginColumn           INT    NOT NULL, "
-//                + " BeginLine            INT     NOT NULL, "
-//                + " Class        TEXT, "
-//                + " DATA        TEXT, "
-//                + " EndColumn      INT, "
-//                + " EndLine        INT, "
-//                + " VARID        TEXT, "
-//                + "INIT TEXT, "
-//                + " String        TEXT, "
-//                + " TimeStamp         BIGINT)";;
-//        if (vardeccounter == 0) {
-//            sqljdbc.createtable(databaseLoc, sql);
-//            sqljdbc.closeConnection();
-//
-//        }
-//        sql = "INSERT INTO VARDEC (ID , VARDECCOUNTER ,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine ,VARID,INIT,String , TimeStamp) "
-//                + "VALUES ('" + vardeccounter + "',' " + vardeccounter + "', '" + n.getBeginColumn() + "','" + n.getBeginLine() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getId() + "','" + n.getInit() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//
-//        vardeccounter++;
-//
-//        super.visit(n, Args);
-//    }
+    public void visit(VariableDeclarator n, Object Args) {
+        System.out.println("Parsing " + n.toString());
+        String sql = "CREATE TABLE VARDEC "
+                + "(ID INT PRIMARY KEY     NOT NULL,"
+                + " VARDECCOUNTER           INT     NOT NULL, "
+                + " BeginColumn           INT    NOT NULL, "
+                + " BeginLine            INT     NOT NULL, "
+                + " Class        TEXT, "
+                + " DATA        TEXT, "
+                + " EndColumn      INT, "
+                + " EndLine        INT, "
+                + " VARID        TEXT, "
+                + "INIT TEXT, "
+                + " String        TEXT, "
+                + " TimeStamp         BIGINT)";;
+        if (vardeccounter == 0) {
+            sqljdbc.createtable(databaseLoc, sql);
+            sqljdbc.closeConnection();
+
+        }
+        sql = "INSERT INTO VARDEC (ID , VARDECCOUNTER ,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine ,VARID,INIT,String , TimeStamp) "
+                + "VALUES ('" + vardeccounter + "',' " + vardeccounter + "', '" + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + n.getClass() + "','" + n.getNameAsString() + "','" + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.getName() + "','" + ((n.getInitializer().isPresent() ) ? n.getInitializer().get() : "") + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
+
+        sqljdbc.insert(databaseLoc, sql);
+        sqljdbc.closeConnection();
+        vardeccounter++;
+        super.visit(n, Args);
+    }
 //
 //    @Override
 //    public void visit(AssignExpr n, Object Args) {
@@ -1089,7 +1076,9 @@ public class Visitor extends VoidVisitorAdapter {
 //
 //    }
 //
+//   
 //    @Override
+
     public void visit(BinaryExpr n, Object Args) {
 
         String sql = "";
