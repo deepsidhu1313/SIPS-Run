@@ -5,7 +5,6 @@
  */
 package sips.run;
 
-import in.co.s13.sips.run.settings.GlobalValues;
 import in.co.s13.sips.run.tools.Util;
 import java.io.BufferedReader;
 import java.io.File;
@@ -128,8 +127,12 @@ public class SimulateProject {
                         + "  <!--this file was created by Eclipse Runnable JAR Export Wizard-->\n"
                         + "  <!--ANT 1.7 is required                                        -->\n"
                         + "\n"
+                        + "<target name=\"clean\">\n"
+                        + "        <delete dir=\"build\"/>\n"
+                        + "    </target>"
                         + "  <target name=\"compile\">\n"
-                        + "    <javac srcdir=\"src\" destdir=\"src\" includes=\"**/*.java\" target=\"1.8\">\n"
+                        + "<mkdir dir=\"build\"/>"
+                        + "    <javac srcdir=\"src\" destdir=\"build\" includes=\"**/*.java\" target=\"1.8\">\n"
                         + "\n"
                         + "        <classpath refid=\"classpath.base\" />\n"
                         + "    </javac>\n"
@@ -142,27 +145,9 @@ public class SimulateProject {
                         + "        <classpath refid=\"classpath.base\" />\n"
                         + "<classpath>\n"
                         + "        <pathelement path=\"${classpath.base}\"/>\n"
-                        + "        <pathelement location=\"src\"/>\n"
+                        + "        <pathelement location=\"build\"/>\n"
                         + "    </classpath>      </java>\n"
                         + "   </target>"
-                        //                        + "\n<target name=\"comment\">\n"
-                        //                        + " <java fork=\"true\" classname= \"lib1.Lib1\">\n"
-                        //                        + "            <classpath>\n"
-                        //                        + "             <path location=\"libs/lib1.jar\"/>\n"
-                        //                        + "            </classpath>\n"
-                        //                        + "            <arg value=\"0\" />\n"
-                        //                        + "        <arg value=\"${arg1}\" />\n"
-                        //                        + "        </java> \n"
-                        //                        + "</target>\n"
-                        //                        + "\n<target name=\"uncomment\"  depends=\"run\">\n"
-                        //                        + " <java fork=\"true\" classname= \"lib1.Lib1\">\n"
-                        //                        + "            <classpath>\n"
-                        //                        + "             <path location=\"libs/lib1.jar\"/>\n"
-                        //                        + "            </classpath>\n"
-                        //                        + "            <arg value=\"1\" />\n"
-                        //                        + "        <arg value=\"${arg1}\" />\n"
-                        //                        + "        </java>\n "
-                        //                        + "</target>\n"
                         + "  <!-- Libraries on which your code depends -->\n"
                         + "  <path id=\"classpath.base\">                                                                                                                           \n"
                         + "     <fileset dir=\"lib\">                                                                                                                          \n"
@@ -187,6 +172,7 @@ public class SimulateProject {
                 out2.println("WORK=${PWD}/");
                 out2.println("cd  \"${1}/\"");
                 out2.println("bash ant");
+                out2.println("bash ant clean");
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(SimulateProject.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -206,6 +192,7 @@ public class SimulateProject {
                     //  out.println("java -jar lib1.jar 0 %arg4%");
                     out.println("cd /d %arg1%");
                     out.println("CALL  ant ");
+                    out.println("CALL  ant clean");
                     // out.println("java -cp .;%PFRAMEWORK_HOME%lib1.jar %arg3%");
                     //  out.println(" cd %PFRAMEWORK_HOME%");
                     //  out.println("java -jar lib1.jar 1 %arg4%");

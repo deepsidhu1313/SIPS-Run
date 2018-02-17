@@ -81,6 +81,12 @@ public class Visitor extends VoidVisitorAdapter {
             + "Category TEXT,"
             + "Level    INT,"
             + "SIM TEXT)";
+    String createdbMeta = "CREATE TABLE META "
+            + "(ID INTEGER PRIMARY KEY  AUTOINCREMENT   NOT NULL,"
+            + " PARENT  TEXT, "
+            + " FILE    TEXT, "
+            + " TimeStamp         BIGINT"
+            + ")";
     String insertdbsyntax = "INSERT INTO SYNTAX "
             + "(ID , Counter ,BeginColumn, BeginLine ,EndColumn , EndLine,String   , TimeStamp, Category,Level,SIM )";
 
@@ -192,6 +198,14 @@ public class Visitor extends VoidVisitorAdapter {
         if (!taskDBFile.getParentFile().exists()) {
             taskDBFile.getParentFile().mkdirs();
         }
+        sqljdbc.createtable(databaseLoc, createdbMeta);
+        sqljdbc.closeConnection();
+        String sql = "INSERT INTO META "
+                + "(PARENT , FILE , TimeStamp) VALUES('" + parentDir + "','" + file.getName() + "','" + System.currentTimeMillis() + "')";
+
+        sqljdbc.createtable(databaseLoc, sql);
+        sqljdbc.closeConnection();
+
     }
 
     public void closedb() throws SQLException {
@@ -1015,7 +1029,7 @@ public class Visitor extends VoidVisitorAdapter {
     }
 
     public void visit(VariableDeclarator n, Object Args) {
-        System.out.println("Parsing " + n.toString());
+//        System.out.println("Parsing " + n.toString());
         String sql = "CREATE TABLE VARDEC "
                 + "(ID INT PRIMARY KEY     NOT NULL,"
                 + " VARDECCOUNTER           INT     NOT NULL, "
@@ -1035,7 +1049,7 @@ public class Visitor extends VoidVisitorAdapter {
 
         }
         sql = "INSERT INTO VARDEC (ID , VARDECCOUNTER ,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine ,VARID,INIT,String , TimeStamp) "
-                + "VALUES ('" + vardeccounter + "',' " + vardeccounter + "', '" + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + n.getClass() + "','" + n.getNameAsString() + "','" + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.getName() + "','" + ((n.getInitializer().isPresent() ) ? n.getInitializer().get() : "") + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
+                + "VALUES ('" + vardeccounter + "',' " + vardeccounter + "', '" + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + n.getClass() + "','" + n.getNameAsString() + "','" + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.getName() + "','" + ((n.getInitializer().isPresent()) ? n.getInitializer().get() : "") + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
 
         sqljdbc.insert(databaseLoc, sql);
         sqljdbc.closeConnection();

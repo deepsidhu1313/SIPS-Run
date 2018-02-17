@@ -343,11 +343,11 @@ public class Util {
     }
 
     public static String generateNodeUUID() {
-        return java.util.UUID.randomUUID() + ":" + java.util.UUID.randomUUID();
+        return java.util.UUID.randomUUID().toString().replaceAll("-", "") + java.util.UUID.randomUUID().toString().replaceAll("-", "");
     }
 
     public static String generateAPIKey() {
-        return java.util.UUID.randomUUID().toString();
+        return java.util.UUID.randomUUID().toString().replaceAll("-", "");
     }
 
     public static void copyFileUsingStream(File source, File dest) {
