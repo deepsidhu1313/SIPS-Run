@@ -85,12 +85,6 @@ public class SIPSRun {
 
 //            if (arguments.size() > 0) 
             {
-                if (arguments.contains("--get-job-status")) {
-                    int index = arguments.indexOf("--get-job-status");
-                    String jobToken = arguments.get(index + 1);
-                    System.out.println("Last Job Status :\n " + getJobStatus(jobToken).toString(4));
-                    System.exit(0);
-                }
 
                 if (arguments.contains("--generate-manifest")) {
                     generateManifest("");
@@ -115,6 +109,72 @@ public class SIPSRun {
 
                 }
                 MANIFEST_FILE = new File(new File(manifestFile).getAbsolutePath());
+                if (arguments.contains("--get-job-status")) {
+                    int index = arguments.indexOf("--get-job-status");
+                    String jobToken = arguments.get(index + 1);
+                    System.out.println("Last Job Status :\n " + getJobStatus(jobToken).toString(4));
+                    System.exit(0);
+                }
+
+                if (arguments.contains("--view-recent-jobs")) {
+                    System.out.println("Recent Jobs:\n ");
+                    JSONObject recentJobs = Util.readJSONFile(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json");
+                    JSONArray recent = recentJobs.getJSONArray("recent", new JSONArray());
+                    for (int i = recent.length() - 1; i >= 0; i--) {
+                        String get = recent.getString(i);
+                        JSONObject status = getJobStatus(get);
+                        System.out.println("" + status.toString(4));
+                        if (status.has("Error!")) {
+                            recent.remove(i);
+                        }
+                    }
+                    Util.write(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json", new JSONObject().put("recent", recent).toString());
+
+                    System.exit(0);
+                }
+
+                if (arguments.contains("--view-last-job")) {
+                    System.out.println("Recent Jobs:\n ");
+                    JSONObject recentJobs = Util.readJSONFile(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json");
+                    JSONArray recent = recentJobs.getJSONArray("recent", new JSONArray());
+                    if (recent.length() > 0) {
+                        String get = recent.getString(recent.length() - 1);
+                        System.out.println("" + getJobStatus(get).toString(4));
+                    } else {
+                        System.err.println("No Recent Job Token Found");
+                    }
+                    System.exit(0);
+                }
+
+                if (arguments.contains("--view-dist-tables")) {
+                    System.out.println("Dist Table of All Recent Jobs:\n ");
+                    JSONObject recentJobs = Util.readJSONFile(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json");
+                    JSONArray recent = recentJobs.getJSONArray("recent", new JSONArray());
+                    for (int i = recent.length() - 1; i >= 0; i--) {
+                        String get = recent.getString(i);
+                        JSONObject status = getJobDistTable(get);
+                        System.out.println("" + status.toString(4));
+                        if (status.has("Error!")) {
+                            recent.remove(i);
+                        }
+                    }
+                    Util.write(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json", new JSONObject().put("recent", recent).toString());
+
+                    System.exit(0);
+                }
+                if (arguments.contains("--view-dist-table")) {
+                    System.out.println("Dist Table of Recent Job:\n ");
+                    JSONObject recentJobs = Util.readJSONFile(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json");
+                    JSONArray recent = recentJobs.getJSONArray("recent", new JSONArray());
+                    if (recent.length() > 0) {
+                        String get = recent.getString(recent.length() - 1);
+                        System.out.println("" + getJobDistTable(get).toString(4));
+                    } else {
+                        System.err.println("No Recent Job Token Found");
+                    }
+                    System.exit(0);
+                }
+
                 if (arguments.contains("--clean")) {
                     System.out.println("\n***************************************************************"
                             + "\n******************* Cleaning Project **************************"
@@ -137,16 +197,15 @@ public class SIPSRun {
                             + "\n************** Use This Token to get Status *******************"
                             + "\n***************************************************************"
                     );
+                    JSONObject recentJobs = Util.readJSONFile(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json");
+                    JSONArray recent = recentJobs.getJSONArray("recent", new JSONArray());
+                    recent.put(JOB_TOKEN);
+                    Util.write(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json", new JSONObject().put("recent", recent).toString());
                 }
 
                 if (arguments.contains("--parallelism")) {
                     int index = arguments.indexOf("--parallelism");
                     PARALLELISM_THRESHOLD = Integer.parseInt(arguments.get(index + 1).trim());
-                }
-
-                if (arguments.contains("--view-recent-jobs")) {
-                    System.out.println("Recent Jobs:\n ");
-                    System.exit(0);
                 }
 
             }
@@ -393,6 +452,22 @@ public class SIPSRun {
         return new JSONObject(reply.getJSONObject("Response", new JSONObject()).getString("Message", ""));
     }
 
+    public JSONObject getJobDistTable(String jobToken) {
+        JSONObject requestJson = new JSONObject();
+        requestJson.put("Command", "dist-table");
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("UUID", UUID);
+        JSONArray args = new JSONArray();
+        args.put(jobToken);
+        requestBody.put("ARGS", args);
+        requestBody.put("API_KEY", manifestJSON.getJSONObject("MASTER").getString("API-KEY"));
+        requestJson.put("Body", requestBody);
+        String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
+        int taskPort = manifestJSON.getJSONObject("MASTER").getInt("JOB-PORT");
+        JSONObject reply = sendCommand(ipaddress, taskPort, requestJson);
+        return new JSONObject(reply.getJSONObject("Response", new JSONObject()).getString("Message", ""));
+    }
+
     public void uploadScheduler(String jobToken) {
         JSONObject requestJson = new JSONObject();
         requestJson.put("Command", "UPLOAD_SCHEDULER");
@@ -471,7 +546,7 @@ public class SIPSRun {
         manifest.put("OUTPUTFREQUENCY", 100);
         JSONObject scheduler = new JSONObject();
         scheduler.put("Name", "in.co.s13.sips.schedulers.Chunk");
-        scheduler.put("MaxNodes", "4");
+        scheduler.put("MaxNodes", 4);
         manifest.put("SCHEDULER", scheduler);
         JSONObject master = new JSONObject();
         master.put("HOST", "127.0.0.1");

@@ -29,11 +29,11 @@ import java.util.logging.Logger;
 public class Commentator {
 
     public Commentator(String file, int startline, int startcolumn, int endline, int endcolumn) {
-        System.out.println("File :" + file);
-        System.out.println("SL :" + startline);
-        System.out.println("SC :" + startcolumn);
-        System.out.println("EL :" + endline);
-        System.out.println("EC :" + endcolumn);
+//        System.out.println("File :" + file);
+//        System.out.println("SL :" + startline);
+//        System.out.println("SC :" + startcolumn);
+//        System.out.println("EL :" + endline);
+//        System.out.println("EC :" + endcolumn);
         // FileReader fReader;
         try {
             // fReader = new FileReader(file);
@@ -49,15 +49,15 @@ public class Commentator {
                 // count lines
                 lines += 1;
                 if (lines == startline) {
-                    System.out.println("Before Comm: "+cursor);
+//                    System.out.println("Before Comm: "+cursor);
                     cursor = new StringBuilder("/*").append(cursor.substring(0)).toString() ;
-                    System.out.println("After Comm: "+cursor);
+//                    System.out.println("After Comm: "+cursor);
                     body = true;
                 }
                 else if (lines == endline) {
-                    System.out.println("Before Comm: "+cursor);
+//                    System.out.println("Before Comm: "+cursor);
                     cursor += "*/";
-                    System.out.println("After Comm: "+cursor);
+//                    System.out.println("After Comm: "+cursor);
                     body = false;
                 }
                 else if (body) {
@@ -69,7 +69,7 @@ public class Commentator {
 
                     }
                 }
-                System.out.println(cursor);
+//                System.out.println(cursor);
                 // count words
                 content += cursor + "\n";
             }

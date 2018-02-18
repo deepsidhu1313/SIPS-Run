@@ -437,6 +437,21 @@ public class Visitor extends VoidVisitorAdapter {
                 syntaxCounter++;
             }
 
+            if (n.getNameAsString().contains("resolveObject") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+
+                    sqljdbc.createtable(databaseLoc, sql);
+
+                }
+
+                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.toString() + "','" + System.currentTimeMillis() + "','ResolveObject','0' ,'FALSE' );";
+                sqljdbc.insert(databaseLoc, sql);
+                sqljdbc.closeConnection();
+                syntaxCounter++;
+            }
+
             if (n.getNameAsString().contains("simulateSection") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
                 sql = "" + createdbsyntax;
                 if (syntaxCounter == 0) {

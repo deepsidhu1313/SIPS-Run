@@ -29,11 +29,11 @@ public class UnCommentator {
     
     public UnCommentator(String file, int startline, int startcolumn, int endline, int endcolumn) {
         System.out.println("Uncommenting");
-        System.out.println("File :" + file);
-        System.out.println("SL :" + startline);
-        System.out.println("SC :" + startcolumn);
-        System.out.println("EL :" + endline);
-        System.out.println("EC :" + endcolumn);
+//        System.out.println("File :" + file);
+//        System.out.println("SL :" + startline);
+//        System.out.println("SC :" + startcolumn);
+//        System.out.println("EL :" + endline);
+//        System.out.println("EC :" + endcolumn);
         //FileReader fReader;
         try {
           FileInputStream fReader=new FileInputStream(file);
@@ -62,7 +62,7 @@ public class UnCommentator {
                 // count words
                 content += cursor+"\n";
             }
-            System.out.println(content);
+//            System.out.println(content);
             File f = new File(file);
             if (f.exists()) {
                 f.delete();
