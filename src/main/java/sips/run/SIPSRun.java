@@ -463,7 +463,7 @@ public class SIPSRun {
         requestBody.put("API_KEY", manifestJSON.getJSONObject("MASTER").getString("API-KEY"));
         requestJson.put("Body", requestBody);
         String ipaddress = manifestJSON.getJSONObject("MASTER").getString("HOST");
-        int taskPort = manifestJSON.getJSONObject("MASTER").getInt("JOB-PORT");
+        int taskPort = manifestJSON.getJSONObject("MASTER").getInt("API-PORT");
         JSONObject reply = sendCommand(ipaddress, taskPort, requestJson);
         return new JSONObject(reply.getJSONObject("Response", new JSONObject()).getString("Message", ""));
     }
