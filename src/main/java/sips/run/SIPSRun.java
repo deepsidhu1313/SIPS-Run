@@ -380,6 +380,8 @@ public class SIPSRun {
         }
         parserExecutor.shutdown();
         parserExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        GlobalValues.taskParserExecutor.shutdown();
+        GlobalValues.taskParserExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         levelDetectorExecutor.shutdown();
         levelDetectorExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         Util.copyFolder(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/src"), (new File(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build"), ("src/"))));

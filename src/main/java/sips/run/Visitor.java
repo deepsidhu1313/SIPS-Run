@@ -23,6 +23,8 @@ import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import in.co.s13.SIPS.db.SQLiteJDBC;
+import in.co.s13.sips.run.settings.GlobalValues;
+import static in.co.s13.sips.run.settings.GlobalValues.taskCounter;
 
 import in.co.s13.sips.run.tools.Util;
 import java.io.File;
@@ -63,7 +65,6 @@ public class Visitor extends VoidVisitorAdapter {
 
     int annotationcounter = 0;
     int returncounter = 0;
-    int taskCounter = 0;
     int classcounter = 0, syntaxCounter = 0, methodcounter = 0, methodcallcounter = 0, objmethodcounter = 0, valmethodcounter = 0;
     SQLiteJDBC sqljdbc = new SQLiteJDBC();
     String databaseLoc, databaseLoc2, databaseLoc3, tasksDBLoc;
@@ -184,7 +185,7 @@ public class Visitor extends VoidVisitorAdapter {
             dbfile2.getParentFile().mkdirs();
         }
 
-        tasksDBLoc = homeDir + "/.parsed/" + parentDir + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-tasks.db";
+        tasksDBLoc = homeDir + "/.parsed/" + "tasks.db";
         File taskDBFile = new File(tasksDBLoc);
         if (taskDBFile.exists()) {
             boolean b = taskDBFile.delete();
@@ -545,18 +546,19 @@ public class Visitor extends VoidVisitorAdapter {
                 sqljdbc.insert(databaseLoc, sql);
                 sqljdbc.closeConnection();
                 syntaxCounter++;
+                GlobalValues.taskParserExecutor.submit(() -> {
 
-                sql = "" + createTasks;
-                if (taskCounter == 0) {
-                    sqljdbc.createtable(tasksDBLoc, sql);
-                }
+                    String sql2 = "" + createTasks;
+                    if (taskCounter.get() == 0) {
+                        GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
+                    }
 
-                sql = "INSERT INTO TASKS (BeginColumn,BeginLine,Class,Name,File,Timestamp) VALUES ('"
-                        + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + file.getName() + "','" + n.getArgument(0) + "','" + file.getName() + "','" + System.currentTimeMillis() + "');";
-                sqljdbc.insert(tasksDBLoc, sql);
-                sqljdbc.closeConnection();
-                taskCounter++;
-
+                    sql2 = "INSERT INTO TASKS (BeginColumn,BeginLine,Class,Name,File,Timestamp) VALUES ('"
+                            + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + file.getName() + "','" + n.getArgument(0) + "','" + file.getName() + "','" + System.currentTimeMillis() + "');";
+                    GlobalValues.sqljdbcTask.insert(tasksDBLoc, sql2);
+                    GlobalValues.sqljdbcTask.closeConnection();
+                    taskCounter.incrementAndGet();
+                });
             }
             if (n.getNameAsString().contains("setTaskResourcePriority") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
                 sql = "" + createdbsyntax;
@@ -571,21 +573,21 @@ public class Visitor extends VoidVisitorAdapter {
                 sqljdbc.insert(databaseLoc, sql);
                 sqljdbc.closeConnection();
                 syntaxCounter++;
-
-                sql = "" + createTasks;
-                if (taskCounter == 0) {
-                    sqljdbc.createtable(tasksDBLoc, sql);
-                }
-                NodeList<Expression> args = n.getArguments();
-                String resources = "";
-                for (int i = 1; i < args.size(); i++) {
-                    Expression get = args.get(i);
-                    resources += get.toString() + ",";
-                }
-                sql = "UPDATE TASKS SET Resources='" + resources + "' WHERE Name='" + n.getArgument(0) + "';";
-                sqljdbc.update(tasksDBLoc, sql);
-                sqljdbc.closeConnection();
-
+                GlobalValues.taskParserExecutor.submit(() -> {
+                    String sql2 = "" + createTasks;
+                    if (taskCounter.get() == 0) {
+                        GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
+                    }
+                    NodeList<Expression> args = n.getArguments();
+                    String resources = "";
+                    for (int i = 1; i < args.size(); i++) {
+                        Expression get = args.get(i);
+                        resources += get.toString() + ",";
+                    }
+                    sql2 = "UPDATE TASKS SET Resources='" + resources + "' WHERE Name='" + n.getArgument(0) + "';";
+                    GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
+                    GlobalValues.sqljdbcTask.closeConnection();
+                });
             }
             if (n.getNameAsString().contains("endTask") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
                 sql = "" + createdbsyntax;
@@ -600,16 +602,15 @@ public class Visitor extends VoidVisitorAdapter {
                 sqljdbc.insert(databaseLoc, sql);
                 sqljdbc.closeConnection();
                 syntaxCounter++;
-
-                sql = "" + createTasks;
-                if (taskCounter == 0) {
-                    sqljdbc.createtable(tasksDBLoc, sql);
-                }
-
-                sql = "UPDATE TASKS SET EndColumn='" + n.getEnd().get().column + "',EndLine='" + n.getEnd().get().line + "' WHERE Name='" + n.getArgument(0) + "';";
-                sqljdbc.update(tasksDBLoc, sql);
-                sqljdbc.closeConnection();
-
+                GlobalValues.taskParserExecutor.submit(() -> {
+                    String sql2 = "" + createTasks;
+                    if (taskCounter.get() == 0) {
+                        GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
+                    }
+                    sql2 = "UPDATE TASKS SET EndColumn='" + n.getEnd().get().column + "',EndLine='" + n.getEnd().get().line + "' WHERE Name='" + n.getArgument(0) + "';";
+                    GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
+                    GlobalValues.sqljdbcTask.closeConnection();
+                });
             }
             if (n.getNameAsString().contains("setDuration") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
                 sql = "" + createdbsyntax;
@@ -624,16 +625,17 @@ public class Visitor extends VoidVisitorAdapter {
                 sqljdbc.insert(databaseLoc, sql);
                 sqljdbc.closeConnection();
                 syntaxCounter++;
+                GlobalValues.taskParserExecutor.submit(() -> {
 
-                sql = "" + createTasks;
-                if (taskCounter == 0) {
-                    sqljdbc.createtable(tasksDBLoc, sql);
-                }
+                    String sql2 = "" + createTasks;
+                    if (taskCounter.get() == 0) {
+                        GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
+                    }
 
-                sql = "UPDATE TASKS SET Length='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "';";
-                sqljdbc.update(tasksDBLoc, sql);
-                sqljdbc.closeConnection();
-
+                    sql2 = "UPDATE TASKS SET Length='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "';";
+                    GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
+                    GlobalValues.sqljdbcTask.closeConnection();
+                });
             }
             if (n.getNameAsString().contains("setTimeout") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
                 sql = "" + createdbsyntax;
@@ -648,15 +650,16 @@ public class Visitor extends VoidVisitorAdapter {
                 sqljdbc.insert(databaseLoc, sql);
                 sqljdbc.closeConnection();
                 syntaxCounter++;
+                GlobalValues.taskParserExecutor.submit(() -> {
+                    String sql2 = "" + createTasks;
+                    if (taskCounter.get() == 0) {
+                        GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
+                    }
 
-                sql = "" + createTasks;
-                if (taskCounter == 0) {
-                    sqljdbc.createtable(tasksDBLoc, sql);
-                }
-
-                sql = "UPDATE TASKS SET Timeout='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "';";
-                sqljdbc.update(tasksDBLoc, sql);
-                sqljdbc.closeConnection();
+                    sql2 = "UPDATE TASKS SET Timeout='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "';";
+                    GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
+                    GlobalValues.sqljdbcTask.closeConnection();
+                });
 
             }
 

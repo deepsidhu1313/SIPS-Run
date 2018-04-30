@@ -16,6 +16,10 @@
  */
 package in.co.s13.sips.run.settings;
 
+import in.co.s13.SIPS.db.SQLiteJDBC;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.json.JSONObject;
 
 /**
@@ -30,4 +34,9 @@ public class GlobalValues {
     public static String OS = System.getProperty("os.name").toLowerCase();
     public static int OS_Name = 0;
     public static JSONObject MANIFEST_JSON;
+    public static SQLiteJDBC sqljdbcTask = new SQLiteJDBC();
+    public static ExecutorService taskParserExecutor = Executors.newFixedThreadPool(1);
+    public static AtomicInteger taskCounter = new AtomicInteger(0);
+    
+
 }
