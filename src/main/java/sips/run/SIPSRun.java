@@ -370,7 +370,12 @@ public class SIPSRun {
         GetJavaFiles getJavaFiles = new GetJavaFiles();
         javaFiles = getJavaFiles.getJavaFiles(new File(MANIFEST_FILE.getParentFile(), "src").getAbsolutePath());
         System.out.println("List of Java Files:\n" + javaFiles);
-
+        String homeDir = SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build";
+        String tasksDBLoc = homeDir + "/.parsed/" + "tasks.db";
+        File taskDBFile = new File(tasksDBLoc);
+        if (taskDBFile.exists()) {
+            taskDBFile.delete();
+        }
         ExecutorService parserExecutor = Executors.newFixedThreadPool(javaFiles.size());
         levelDetectorExecutor = Executors.newFixedThreadPool(javaFiles.size());
         for (int i = 0; i < javaFiles.size(); i++) {
