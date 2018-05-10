@@ -31,8 +31,10 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONArray;
 
 /**
  *
@@ -142,20 +144,21 @@ public class Visitor extends VoidVisitorAdapter {
             + " EndColumn      INT, "
             + " EndLine        INT, "
             + " Name        TEXT, "
-            + " Resources      TEXT, "
+            + " Resources      TEXT DEFAULT '[\"CPU\"]', "
             + " File        TEXT,"
-            + " Length         BIGINT,"
-            + " Timeout         BIGINT,"
-            + " TimeStamp         BIGINT)";
+            + " Length         DECIMAL DEFAULT '1.0',"
+            + " Timeout         NUMERIC DEFAULT '1000000',"
+            + " TimeStamp         NUMERIC)";
 //    String homeDir = System.getProperty("user.home") + "/.SIPS";
     String homeDir = ".build";
     File file;
+    String parentDir = "";
 
     public Visitor(File file) throws IOException {
         this.file = file;
 //        sqljdbc.setVerbose(true);
         homeDir = SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build";
-        String parentDir = file.getAbsoluteFile().getParentFile().getAbsolutePath();
+        parentDir = file.getAbsoluteFile().getParentFile().getAbsolutePath();
 //        System.out.println("Length: "+parentDir.length());
         parentDir = parentDir.substring(parentDir.lastIndexOf("src") + 3);
 //        System.out.println("Parent Dir: "+parentDir);
@@ -547,7 +550,7 @@ public class Visitor extends VoidVisitorAdapter {
 
                     sql2 = "INSERT INTO TASKS (ID,BeginColumn,BeginLine,Class,Name,File,Timestamp)"
                             + " VALUES ('"
-                            + GlobalValues.taskCounter.get() + "','" + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + file.getName() + "','" + n.getArgument(0) + "','" + file.getName() + "','" + System.currentTimeMillis() + "');";
+                            + GlobalValues.taskCounter.get() + "','" + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + file.getAbsolutePath() + "','" + n.getArgument(0) + "','" + parentDir + "/" + file.getName() + "','" + System.currentTimeMillis() + "');";
                     GlobalValues.sqljdbcTask.insert(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                     taskCounter.incrementAndGet();
@@ -571,13 +574,42 @@ public class Visitor extends VoidVisitorAdapter {
                     if (taskCounter.get() == 0) {
                         GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
                     }
+                    sql2 = "SELECT * FROM TASKS WHERE Name='" + n.getArgument(0) + "';";
+                    ResultSet rs = GlobalValues.sqljdbcTask.select(tasksDBLoc, sql2);
+                    JSONArray resources2;
+                    ArrayList<String> list = new ArrayList<>();
+                    try {
+                        while (rs.next()) {
+                            resources2 = new JSONArray(rs.getString("Resources"));
+                            for (int i = 0; i < resources2.length(); i++) {
+                                String get = resources2.getString(i);
+                                if (!list.contains(get)) {
+                                    list.add(get);
+                                }
+                            }
+
+                        }
+                    } catch (SQLException ex) {
+                        Logger.getLogger(Visitor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                    GlobalValues.sqljdbcTask.closeConnection();
+
                     NodeList<Expression> args = n.getArguments();
-                    String resources = "";
+                    JSONArray resources = new JSONArray();
                     for (int i = 1; i < args.size(); i++) {
                         Expression get = args.get(i);
-                        resources += get.toString() + ",";
+                        if (!list.contains(get.toString())) {
+                            list.add(get.toString());
+                        }
                     }
-                    sql2 = "UPDATE TASKS SET Resources='" + resources + "' WHERE Name='" + n.getArgument(0) + "';";
+                    
+                    for (int i = 0; i < list.size(); i++) {
+                        String get = list.get(i);
+                        resources.put(get);
+                    }
+                    
+                    sql2 = "UPDATE TASKS SET Resources='" + resources.toString() + "' WHERE Name='" + n.getArgument(0) + "' AND Class='" + file.getAbsolutePath() + "';";
                     GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                 });
@@ -614,7 +646,7 @@ public class Visitor extends VoidVisitorAdapter {
                     if (taskCounter.get() == 0) {
                         GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
                     }
-                    sql2 = "UPDATE TASKS SET EndColumn='" + n.getEnd().get().column + "',EndLine='" + n.getEnd().get().line + "' WHERE Name='" + n.getArgument(0) + "';";
+                    sql2 = "UPDATE TASKS SET EndColumn='" + n.getEnd().get().column + "',EndLine='" + n.getEnd().get().line + "' WHERE Name='" + n.getArgument(0) + "' AND Class='" + file.getAbsolutePath() + "';";
                     GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                 });
@@ -639,7 +671,7 @@ public class Visitor extends VoidVisitorAdapter {
                         GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
                     }
 
-                    sql2 = "UPDATE TASKS SET Length='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "';";
+                    sql2 = "UPDATE TASKS SET Length='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "' AND Class='" + file.getAbsolutePath() + "';";
                     GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                 });
@@ -663,7 +695,7 @@ public class Visitor extends VoidVisitorAdapter {
                         GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
                     }
 
-                    sql2 = "UPDATE TASKS SET Timeout='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "';";
+                    sql2 = "UPDATE TASKS SET Timeout='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "' AND Class='" + file.getAbsolutePath() + "';";
                     GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                 });
