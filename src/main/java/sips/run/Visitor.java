@@ -145,6 +145,7 @@ public class Visitor extends VoidVisitorAdapter {
             + " EndLine        INT, "
             + " Name        TEXT, "
             + " Resources      TEXT DEFAULT '[\"CPU\"]', "
+            + " DependsOn      TEXT DEFAULT '[]', "
             + " File        TEXT,"
             + " Length         DECIMAL DEFAULT '1.0',"
             + " Timeout         NUMERIC DEFAULT '1000000',"
@@ -209,34 +210,7 @@ public class Visitor extends VoidVisitorAdapter {
     }
 
     public void visit(ForStmt n, Object arg) {
-        // here you can access the attributes of the method.
-        // this method will be called for all methods in this 
-        // CompilationUnit, including inner class methods
-        /* 
-        System.out.println(n.getBegin());
-        System.out.println(n.getBegin());
-        System.out.println(n.getEnd());
-        System.out.println(n.getEnd());
-        System.out.println(n.getBody());
-        System.out.println(n.getCompare());
-        System.out.println(n.getClass());
-        System.out.println(n.getInitialization());
-        System.out.println(n.getUpdate());
-//        System.out.println(n.getData());
-         forloop.add("\n<FORLOOP>\n<ID>" + forcounter + "</ID>");
-         forloop.add("\n<ForLoopCounter>" + forcounter + "</ForLoopCounter>");
-         forloop.add("\n<BeginColumn>" + n.getBeginColumn() + "</BeginColumn>");
-         forloop.add("\n<BeginLine>" + n.getBeginLine() + "</BeginLine>");
-         forloop.add("\n<Body>" + n.getBody() + "</Body>");
-         forloop.add("\n<Class>" + n.getClass() + "</Class>");
-         forloop.add("\n<Compare>" + n.getCompare() + "</Compare>");
-         forloop.add("\n<Data>" + n.getData() + "</Data>");
-         forloop.add("\n<EndColumn>" + n.getEndColumn() + "</EndColumn>");
-         forloop.add("\n<EndLine>" + n.getEndLine() + "</EndLine>");
-         forloop.add("\n<init>" + n.getInit() + "</init>");
-         forloop.add("\n<Update>" + n.getUpdate() + "</Update>");
-         forloop.add("\n<String>" + n.toString() + "</String>" + "\n</FORLOOP>");
-         */
+
         String sql = "" + createdbforloop;
         if (forcounter == 0) {
             sqljdbc.createtable(databaseLoc, sql);
@@ -258,41 +232,13 @@ public class Visitor extends VoidVisitorAdapter {
 
         }
 
-//        sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
-//                + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.toString() + "','" + System.currentTimeMillis() + "','ForLoop','0','NULL' );";
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//        syntaxCounter++;
+
         forcounter++;
 
         super.visit(n, arg);
     }
 
     public void visit(WhileStmt n, Object arg) {
-        // here you can access the attributes of the method.
-        // this method will be called for all methods in this 
-        // CompilationUnit, including inner class methods
-//        System.out.println(n.getBody());
-//        System.out.println(n.getCondition());
-//        System.out.println(n.getClass());
-//        System.out.println(n.getEnd());
-//        System.out.println(n.getUpdate());
-//        System.out.println(n.getData(key));
-        /* 
-         whileloop.add("\n<WhileLoop>\n<ID>" + whilecounter + "</ID>");
-         whileloop.add("\n<WhileLoopCounter>" + whilecounter + "</WhileLoopCounter>");
-         whileloop.add("\n<BeginColumn>" + n.getBeginColumn() + "</BeginColumn>");
-         whileloop.add("\n<BeginLine>" + n.getBeginLine() + "</BeginLine>");
-         whileloop.add("\n<Body>" + n.getBody() + "</Body>");
-         whileloop.add("\n<Class>" + n.getClass() + "</Class>");
-         whileloop.add("\n<Condition>" + n.getCondition() + "</Condition>");
-         whileloop.add("\n<Data>" + n.getData() + "</Data>");
-         whileloop.add("\n<EndColumn>" + n.getEndColumn() + "<EndColumn>");
-         whileloop.add("\n<EndLine>" + n.getEndLine() + "</EndLine>");
-         whileloop.add("\n<String>" + n.toString() + "</String>\n</WhileLoop>");
-
-         whilelist.add(whileloop);
-         */
         createdbwhileloop = "CREATE TABLE WHILELOOP "
                 + "(ID INT PRIMARY KEY     NOT NULL,"
                 + " WHILELOOPCOUNTER            INT     NOT NULL, "
@@ -326,12 +272,6 @@ public class Visitor extends VoidVisitorAdapter {
 
         }
 
-//        sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
-//                + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + n.toString() + "','" + System.currentTimeMillis() + "','WhileLoop','0' ,'NULL' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//        syntaxCounter++;
         whilecounter++;
         super.visit(n, arg);
 
@@ -557,18 +497,7 @@ public class Visitor extends VoidVisitorAdapter {
                 });
             }
             if (n.getNameAsString().contains("setTaskResourcePriority") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
-//                sql = "" + createdbsyntax;
-//                if (syntaxCounter == 0) {
-//
-//                    sqljdbc.createtable(databaseLoc, sql);
-//
-//                }
-//
-//                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
-//                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + "','" + System.currentTimeMillis() + "','Task','0' ,'NULL' );";
-//                sqljdbc.insert(databaseLoc, sql);
-//                sqljdbc.closeConnection();
-//                syntaxCounter++;
+
                 GlobalValues.taskParserExecutor.submit(() -> {
                     String sql2 = "" + createTasks;
                     if (taskCounter.get() == 0) {
@@ -603,13 +532,61 @@ public class Visitor extends VoidVisitorAdapter {
                             list.add(get.toString());
                         }
                     }
-                    
+
                     for (int i = 0; i < list.size(); i++) {
                         String get = list.get(i);
                         resources.put(get);
                     }
-                    
+
                     sql2 = "UPDATE TASKS SET Resources='" + resources.toString() + "' WHERE Name='" + n.getArgument(0) + "' AND Class='" + file.getAbsolutePath() + "';";
+                    GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
+                    GlobalValues.sqljdbcTask.closeConnection();
+                });
+            }
+
+            if (n.getNameAsString().contains("setTaskDependency") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+
+                GlobalValues.taskParserExecutor.submit(() -> {
+                    String sql2 = "" + createTasks;
+                    if (taskCounter.get() == 0) {
+                        GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
+                    }
+                    sql2 = "SELECT * FROM TASKS WHERE Name='" + n.getArgument(0) + "';";
+                    ResultSet rs = GlobalValues.sqljdbcTask.select(tasksDBLoc, sql2);
+                    JSONArray dependencies2;
+                    ArrayList<String> list = new ArrayList<>();
+                    try {
+                        while (rs.next()) {
+                            dependencies2 = new JSONArray(rs.getString("DependsOn"));
+                            for (int i = 0; i < dependencies2.length(); i++) {
+                                String get = dependencies2.getString(i);
+                                if (!list.contains(get)) {
+                                    list.add(get);
+                                }
+                            }
+
+                        }
+                    } catch (SQLException ex) {
+                        Logger.getLogger(Visitor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                    GlobalValues.sqljdbcTask.closeConnection();
+
+                    NodeList<Expression> args = n.getArguments();
+                    JSONArray dependencies = new JSONArray();
+                    for (int i = 1; i < args.size(); i++) {
+                        Expression get = args.get(i);
+                        if (!list.contains(get.toString())) {
+                            list.add(get.toString());
+                        }
+                    }
+
+                    for (int i = 0; i < list.size(); i++) {
+                        String get = list.get(i);
+                        dependencies.put(get);
+                    }
+
+                    sql2 = "UPDATE TASKS SET DependsOn='" + dependencies.toString() + "' WHERE Name='" + n.getArgument(0) + "' AND Class='" + file.getAbsolutePath() + "';";
                     GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                 });
@@ -636,11 +613,6 @@ public class Visitor extends VoidVisitorAdapter {
                     Logger.getLogger(Visitor.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-//                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
-//                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + "','" + System.currentTimeMillis() + "','Task','0' ,'NULL' );";
-//                sqljdbc.insert(databaseLoc, sql);
-//                sqljdbc.closeConnection();
-//                syntaxCounter++;
                 GlobalValues.taskParserExecutor.submit(() -> {
                     String sql2 = "" + createTasks;
                     if (taskCounter.get() == 0) {
@@ -652,18 +624,7 @@ public class Visitor extends VoidVisitorAdapter {
                 });
             }
             if (n.getNameAsString().contains("setDuration") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
-//                sql = "" + createdbsyntax;
-//                if (syntaxCounter == 0) {
-//
-//                    sqljdbc.createtable(databaseLoc, sql);
-//
-//                }
-//
-//                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
-//                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + "','" + System.currentTimeMillis() + "','Task','0' ,'NULL' );";
-//                sqljdbc.insert(databaseLoc, sql);
-//                sqljdbc.closeConnection();
-//                syntaxCounter++;
+
                 GlobalValues.taskParserExecutor.submit(() -> {
 
                     String sql2 = "" + createTasks;
@@ -677,18 +638,6 @@ public class Visitor extends VoidVisitorAdapter {
                 });
             }
             if (n.getNameAsString().contains("setTimeout") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
-//                sql = "" + createdbsyntax;
-//                if (syntaxCounter == 0) {
-//
-//                    sqljdbc.createtable(databaseLoc, sql);
-//
-//                }
-//
-//                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
-//                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','" + "','" + System.currentTimeMillis() + "','Task','0' ,'NULL' );";
-//                sqljdbc.insert(databaseLoc, sql);
-//                sqljdbc.closeConnection();
-//                syntaxCounter++;
                 GlobalValues.taskParserExecutor.submit(() -> {
                     String sql2 = "" + createTasks;
                     if (taskCounter.get() == 0) {
@@ -708,32 +657,6 @@ public class Visitor extends VoidVisitorAdapter {
     }
 
     public void visit(VariableDeclarationExpr n, Object Args) {
-//        System.out.println(n.getAnnotations());
-//        System.out.println(n.getBegin());
-//        System.out.println(n.getBegin());
-//        System.out.println(n.getClass());
-//        System.out.println(n.getData());
-//        System.out.println(n.getEnd());
-//        System.out.println(n.getEndLine());
-//        System.out.println(n.getElementType());
-//        System.out.println(n.getVariables());
-
-//        variables.add("\n<Variable>\n<ID>" + varcounter + "</ID>");
-//        variables.add("\n<VariableCounter>" + varcounter + "</VariableCounter>");
-//        variables.add("\n<Annotations>" + n.getAnnotations() + "</Annotations>");
-//        variables.add("\n<BeginColumn>" + n.getBeginColumn() + "</BeginColumn>");
-//        variables.add("\n<BeginLine>" + n.getBeginLine() + "</BeginLine>");
-//        variables.add("\n<Class>" + n.getClass() + "</Class>");
-//        variables.add("\n<Data>" + n.getData() + "</Data>");
-//        variables.add("\n<EndColumn>" + n.getEndColumn() + "</EndColumn>");
-//        variables.add("\n<EndLine>" + n.getEndLine() + "</EndLine>");
-//        variables.add("\n<Modifiers>" + n.getModifiers() + "</Modifiers>");
-//        variables.add("\n<Type>" + n.getType() + "</Type>");
-//        variables.add("\n<Var>" + n.getVars() + "</Var>");
-//        variables.add("\n<String>" + n.toString() + "</String>\n</Variable>");
-//
-//        varlist.add(variables);
-//
         createdbvars = "CREATE TABLE VARIABLES "
                 + "(ID INT PRIMARY KEY     NOT NULL,"
                 + " VariableCounter            INT     NOT NULL, "
@@ -773,13 +696,6 @@ public class Visitor extends VoidVisitorAdapter {
     }
 
     public void visit(ClassExpr n, Object Args) {
-//        System.out.println(n.getBegin());
-//        System.out.println(n.getBeginLine());
-//        System.out.println(n.getClass());
-//        System.out.println(n.getData());
-//        System.out.println(n.getEnd());
-//        System.out.println(n.getEndLine());
-//        System.out.println(n.getType());
 
         String sql = "CREATE TABLE CLASS "
                 + "(ID INT PRIMARY KEY     NOT NULL,"
