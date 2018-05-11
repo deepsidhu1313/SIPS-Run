@@ -42,12 +42,6 @@ import org.json.JSONArray;
  */
 public class Visitor extends VoidVisitorAdapter {
 
-//    public ArrayList<ArrayList> forlist = new ArrayList();
-//    public ArrayList forloop = new ArrayList();
-//    public ArrayList<ArrayList> whilelist = new ArrayList();
-//    public ArrayList whileloop = new ArrayList();
-//    public ArrayList<ArrayList> varlist = new ArrayList();
-//    public ArrayList variables = new ArrayList();
     int forcounter = 0;
     int qualcounter = 0;
     int objccounter = 0;
@@ -144,7 +138,7 @@ public class Visitor extends VoidVisitorAdapter {
             + " EndColumn      INT, "
             + " EndLine        INT, "
             + " Name        TEXT, "
-            + " Resources      TEXT DEFAULT '[\"CPU\"]', "
+            + " Resources      TEXT DEFAULT '[\"\"CPU\"\"]', "
             + " DependsOn      TEXT DEFAULT '[]', "
             + " File        TEXT,"
             + " Length         DECIMAL DEFAULT '1.0',"
@@ -231,7 +225,6 @@ public class Visitor extends VoidVisitorAdapter {
             sqljdbc.closeConnection();
 
         }
-
 
         forcounter++;
 
@@ -738,271 +731,12 @@ public class Visitor extends VoidVisitorAdapter {
     }
 
     public void visit(MethodDeclaration n, Object Args) {
-        // System.out.println(""+n.);
-//        String sql = "CREATE TABLE METHOD "
-//                + "(ID INT PRIMARY KEY     NOT NULL,"
-//                + " MethodCounter            INT     NOT NULL, "
-//                + " Annotations           TEXT    NOT NULL, "
-//                + " ArrayCount           TEXT    NOT NULL, "
-//                + " BeginColumn           INT    NOT NULL, "
-//                + " BeginLine            INT     NOT NULL, "
-//                + " Body           TEXT, "
-//                + " Class        TEXT, "
-//                + " DATA        TEXT, "
-//                + " EndColumn        INT, "
-//                + " EndLine        INT, "
-//                + " JavaDoc        TEXT, "
-//                + " Modifier        TEXT, "
-//                + " Name        TEXT, "
-//                + " Parameter        TEXT, "
-//                + " Throw        TEXT, "
-//                + " Type       TEXT, "
-//                + " TypeParam        TEXT, "
-//                + " String        TEXT, "
-//                + " TimeStamp         BIGINT)";
-//        if (methodcounter == 0) {
-//            sqljdbc.createtable(databaseLoc, sql);
-//        }
-//
-//        sql = "INSERT INTO METHOD (ID , MethodCounter ,Annotations,ArrayCount,BeginColumn, BeginLine,Body,Class,DATA , EndColumn , EndLine,JavaDoc,Modifier,Name,Parameter,Throw,Type,TypeParam, String , TimeStamp) "
-//                + "VALUES ('" + methodcounter + "',' " + methodcounter + "',' " + n.getAnnotations() + "',' " + n.getArrayCount() + "',' " + n.getBeginColumn() + "',' " + n.getBeginLine() + "','" + n.getBody() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getJavaDoc() + "','" + n.getModifiers() + "','" + n.getName() + "','" + n.getParameters() + "','" + n.getThrows() + "','" + n.getType() + "','" + n.getTypeParameters() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sql = "" + createdbsyntax;
-//        if (syntaxCounter == 0) {
-//
-//            sqljdbc.createtable(databaseLoc, sql);
-//
-//        }
-//        sqljdbc.closeConnection();
-//
-//        sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBeginColumn() + "',' " + n.getBeginLine() + "','"
-//                + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.toString() + "','" + System.currentTimeMillis() + "',' MethodDeclaration','0' ,'NULL' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//        syntaxCounter++;
-//
-//        methodcounter++;
-        super.visit(n, Args);
-
-    }
-
-//    public void visit(QualifiedNameExpr n, Object Args) {
-////        String sql = "CREATE TABLE QUALIFIEDNAME "
-////                + "(ID INT PRIMARY KEY     NOT NULL,"
-////                + " QUALNAMECOUNTER           INT     NOT NULL, "
-////                + " BeginColumn           INT    NOT NULL, "
-////                + " BeginLine            INT     NOT NULL, "
-////                + " Class        TEXT, "
-////                + " DATA        TEXT, "
-////                + " EndColumn      INT, "
-////                + " EndLine        INT, "
-////                + " Name        TEXT, "
-////                + " Qualifier        TEXT, "
-////                + " String        TEXT, "
-////                + " TimeStamp         BIGINT)";;
-////        if (qualcounter == 0) {
-////            sqljdbc.createtable(databaseLoc, sql);
-////            sqljdbc.closeConnection();
-////
-////        }
-////        sql = "INSERT INTO QUALIFIEDNAME (ID , QUALNAMECOUNTER ,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine  , Name  ,Qualifier, String , TimeStamp) "
-////                + "VALUES ('" + qualcounter + "',' " + qualcounter + "',' " + n.getBeginColumn() + "',' " + n.getBeginLine() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getName() + "','" + n.getQualifier() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-////
-////        sqljdbc.insert(databaseLoc, sql);
-////        sqljdbc.closeConnection();
-////        qualcounter++;
-//        super.visit(n, Args);
-//
-//    }
-    public void visit(ObjectCreationExpr n, Object Args) {
-
-//        String sql = "CREATE TABLE OBJECTCREATION "
-//                + "(ID INT PRIMARY KEY     NOT NULL,"
-//                + " OBJECTCOUNTER           INT     NOT NULL, "
-//                + " ANONCLASSBODY        TEXT, "
-//                + " ARGS        TEXT, "
-//                + " BeginColumn           INT    NOT NULL, "
-//                + " BeginLine            INT     NOT NULL, "
-//                + " Class        TEXT, "
-//                + " DATA        TEXT, "
-//                + " EndColumn      INT, "
-//                + " EndLine        INT, "
-//                + " SCOPE        TEXT, "
-//                + " TYPE        TEXT, "
-//                + " TYPEARGS        TEXT, "
-//                + " String        TEXT, "
-//                + " TimeStamp         BIGINT)";;
-//        if (objccounter == 0) {
-//            sqljdbc.createtable(databaseLoc, sql);
-//            sqljdbc.closeConnection();
-//
-//        }
-//        sql = "INSERT INTO OBJECTCREATION (ID , OBJECTCOUNTER ,ANONCLASSBODY,ARGS,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine  ,SCOPE, TYPE  ,TYPEARGS, String , TimeStamp) "
-//                + "VALUES ('" + objccounter + "','" + objccounter + "','" + n.getAnonymousClassBody() + "', '" + n.getArgs() + "','" + n.getBeginColumn() + "',' " + n.getBeginLine() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getScope() + "','" + n.getType() + "','" + n.getTypeArgs() + "',' " + n.toString() + "','" + System.currentTimeMillis() + "' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//        objccounter++;
-        super.visit(n, Args);
-    }
-
-    public void visit(ImportDeclaration n, Object Args) {
-
-//        String sql = "CREATE TABLE IMPORTS "
-//                + "(ID INT PRIMARY KEY     NOT NULL,"
-//                + " IMPORTCOUNTER           INT     NOT NULL, "
-//                + " BeginColumn           INT    NOT NULL, "
-//                + " BeginLine            INT     NOT NULL, "
-//                + " Class        TEXT, "
-//                + " DATA        TEXT, "
-//                + " EndColumn      INT, "
-//                + " EndLine        INT, "
-//                + " NAME        TEXT, "
-//                + " ASTERISK        TEXT, "
-//                + " STATIC        TEXT, "
-//                + " String        TEXT, "
-//                + " TimeStamp         BIGINT)";;
-//        if (importcounter == 0) {
-//            sqljdbc.createtable(databaseLoc, sql);
-//            sqljdbc.closeConnection();
-//
-//        }
-//        sql = "INSERT INTO IMPORTS (ID , IMPORTCOUNTER ,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine  ,NAME, ASTERISK ,STATIC, String , TimeStamp) "
-//                + "VALUES ('" + importcounter + "',' " + importcounter + "', '" + n.getBeginColumn() + "',' " + n.getBeginLine() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getName() + "','" + n.isAsterisk() + "','" + n.isStatic() + "',' " + n.toString() + "','" + System.currentTimeMillis() + "' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//
-//        importcounter++;
-        super.visit(n, Args);
-    }
-
-    public void visit(PackageDeclaration n, Object Args) {
-
-//        String sql = "CREATE TABLE PACKDEC "
-//                + "(ID INT PRIMARY KEY     NOT NULL,"
-//                + " PACKDECCOUNTER           INT     NOT NULL, "
-//                + " Annotations        TEXT, "
-//                + " BeginColumn           INT    NOT NULL, "
-//                + " BeginLine            INT     NOT NULL, "
-//                + " Class        TEXT, "
-//                + " DATA        TEXT, "
-//                + " EndColumn      INT, "
-//                + " EndLine        INT, "
-//                + " NAME        TEXT, "
-//                + " String        TEXT, "
-//                + " TimeStamp         BIGINT)";;
-//        if (packdeccounter == 0) {
-//            sqljdbc.createtable(databaseLoc, sql);
-//            sqljdbc.closeConnection();
-//
-//        }
-//        sql = "INSERT INTO PACKDEC (ID , PACKDECCOUNTER ,Annotations,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine  ,NAME, String , TimeStamp) "
-//                + "VALUES ('" + packdeccounter + "',' " + packdeccounter + "', '" + n.getAnnotations() + "',' " + n.getBeginColumn() + "',' " + n.getBeginLine() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getName() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//
-//        packdeccounter++;
-        super.visit(n, Args);
-    }
-
-    public void visit(ClassOrInterfaceDeclaration n, Object Args) {
-
-//        String sql = "CREATE TABLE CLASSINTERFACE "
-//                + "(ID INT PRIMARY KEY     NOT NULL,"
-//                + " CORICOUNTER           INT     NOT NULL, "
-//                + " Annotations        TEXT, "
-//                + " BeginColumn           INT    NOT NULL, "
-//                + " BeginLine            INT     NOT NULL, "
-//                + " Class        TEXT, "
-//                + " DATA        TEXT, "
-//                + " EndColumn      INT, "
-//                + " EndLine        INT, "
-//                + " EXTENDS        TEXT, "
-//                + " IMPLEMENTS        TEXT, "
-//                + " JAVADOC        TEXT, "
-//                + " MEMBERS        TEXT, "
-//                + " MODIFIERS       TEXT, "
-//                + " NAME        TEXT, "
-//                + " TYPEPARMS        TEXT, "
-//                + " ISINTERFACE        TEXT, "
-//                + " String        TEXT, "
-//                + " TimeStamp         BIGINT)";;
-//        if (coricounter == 0) {
-//            sqljdbc.createtable(databaseLoc, sql);
-//            sqljdbc.closeConnection();
-//
-//        }
-//        sql = "INSERT INTO CLASSINTERFACE (ID , CORICOUNTER ,Annotations,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine  ,EXTENDS,IMPLEMENTS,JAVADOC,MEMBERS,MODIFIERS,NAME, TYPEPARMS,ISINTERFACE,String , TimeStamp) "
-//                + "VALUES ('" + coricounter + "',' " + coricounter + "', '" + n.getAnnotations() + "', '" + n.getBeginColumn() + "',' " + n.getBeginLine() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getExtends() + "','" + n.getImplements() + "','" + n.getJavaDoc() + "','" + n.getMembers() + "','" + n.getModifiers() + "','" + n.getName() + "','" + n.getTypeParameters() + "','" + n.isInterface() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//
-//        sql = "" + createdbsyntax;
-//        if (syntaxCounter == 0) {
-//
-//            sqljdbc.createtable(databaseLoc, sql);
-//
-//        }
-//        sqljdbc.closeConnection();
-//        String type = "";
-//        if (n.isInterface()) {
-//            type = "Interface";
-//        } else {
-//            type = "Class";
-//        }
-//        sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBeginColumn() + "',' " + n.getBeginLine() + "','"
-//                + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.toString() + "','" + System.currentTimeMillis() + "',' " + type + "','0' ,'NULL' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//        syntaxCounter++;
-//
-//        coricounter++;
-        super.visit(n, Args);
-    }
-
-    public void visit(ConstructorDeclaration n, Object Args) {
-//        String sql = "CREATE TABLE CONSTRUCTOR "
-//                + "(ID INT PRIMARY KEY     NOT NULL,"
-//                + " CONCOUNTER           INT     NOT NULL, "
-//                + " Annotations        TEXT, "
-//                + " BeginColumn           INT    NOT NULL, "
-//                + " BeginLine            INT     NOT NULL, "
-//                + " BLOCK        TEXT, "
-//                + " Class        TEXT, "
-//                + " DATA        TEXT, "
-//                + " EndColumn      INT, "
-//                + " EndLine        INT, "
-//                + " JAVADOC        TEXT, "
-//                + " MODIFIERS       TEXT, "
-//                + " NAME        TEXT, "
-//                + " PARMS        TEXT, "
-//                + " THROWS        TEXT, "
-//                + " TYPEPARMS        TEXT, "
-//                + " String        TEXT, "
-//                + " TimeStamp         BIGINT)";;
-//        if (concounter == 0) {
-//            sqljdbc.createtable(databaseLoc, sql);
-//            sqljdbc.closeConnection();
-//
-//        }
-//        sql = "INSERT INTO CONSTRUCTOR (ID , CONCOUNTER ,Annotations,BeginColumn, BeginLine,BLOCK,Class,DATA , EndColumn , EndLine ,JAVADOC,MODIFIERS,NAME,PARMS,THROWS, TYPEPARMS,String , TimeStamp) "
-//                + "VALUES ('" + concounter + "',' " + concounter + "', '" + n.getAnnotations() + "', '" + n.getBeginColumn() + "',' " + n.getBeginLine() + "','" + n.getBlock() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getJavaDoc() + "','" + n.getModifiers() + "','" + n.getName() + "','" + n.getParameters() + "','" + n.getThrows() + "','" + n.getTypeParameters() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//        concounter++;
 
         super.visit(n, Args);
+
     }
 
     public void visit(VariableDeclarator n, Object Args) {
-//        System.out.println("Parsing " + n.toString());
         String sql = "CREATE TABLE VARDEC "
                 + "(ID INT PRIMARY KEY     NOT NULL,"
                 + " VARDECCOUNTER           INT     NOT NULL, "
@@ -1029,43 +763,8 @@ public class Visitor extends VoidVisitorAdapter {
         vardeccounter++;
         super.visit(n, Args);
     }
-//
-//    @Override
-//    public void visit(AssignExpr n, Object Args) {
-//
-//        String sql = "";
-//
-//        sql = "CREATE TABLE ASSIGNMENT "
-//                + "(ID INT PRIMARY KEY     NOT NULL,"
-//                + " AssignmentCounter            INT     NOT NULL, "
-//                + " BeginColumn           INT    NOT NULL, "
-//                + " BeginLine            INT     NOT NULL, "
-//                + " Class        TEXT, "
-//                + " DATA        TEXT, "
-//                + " EndColumn        INT, "
-//                + " EndLine        INT, "
-//                + " Operator       TEXT, "
-//                + " Target       TEXT, "
-//                + " Value       TEXT, "
-//                + " String        TEXT, "
-//                + " TimeStamp         BIGINT)";
-//        if (assigncounter == 0) {
-//            sqljdbc.createtable(databaseLoc, sql);
-//        }
-//        sql = "INSERT INTO ASSIGNMENT (ID , AssignmentCounter ,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine  ,Operator,Target,Value, String , TimeStamp) "
-//                + "VALUES ('" + assigncounter + "',' " + assigncounter + "',' " + n.getBeginColumn() + "',' " + n.getBeginLine() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getOperator() + "','" + n.getTarget() + "','" + n.getValue() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//
-//        assigncounter++;
-//        super.visit(n, Args);
-//
-//    }
-//
-//   
-//    @Override
 
+    @Override
     public void visit(BinaryExpr n, Object Args) {
 
         String sql = "";
@@ -1093,100 +792,9 @@ public class Visitor extends VoidVisitorAdapter {
         sqljdbc.insert(databaseLoc, sql);
         sqljdbc.closeConnection();
 
-        //n.setOperator(BinaryExpr.Operator.or);
         binarycounter++;
-//        System.out.println("Visited Binary " + n.toString());
         super.visit(n, Args);
 
     }
-//    @Override
-//    public void visit(BooleanLiteralExpr n, Object Args) {
-//
-//        String sql = "";
-//
-//        sql = "CREATE TABLE BOOLEANEXP "
-//                + "(ID INT PRIMARY KEY     NOT NULL,"
-//                + " BooleanCounter            INT     NOT NULL, "
-//                + " BeginColumn           INT    NOT NULL, "
-//                + " BeginLine            INT     NOT NULL, "
-//                + " Class        TEXT, "
-//                + " DATA        TEXT, "
-//                + " EndColumn        INT, "
-//                + " EndLine        INT, "
-//                + " Value       TEXT, "
-//                + " String        TEXT, "
-//                + " TimeStamp         BIGINT)";
-//        if (booleancounter == 0) {
-//            sqljdbc.createtable(databaseLoc, sql);
-//        }
-//        sql = "INSERT INTO BOOLEANEXP (ID , BooleanCounter ,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine  ,Value, String , TimeStamp) "
-//                + "VALUES ('" + booleancounter + "',' " + booleancounter + "',' " + n.getBeginColumn() + "',' " + n.getBeginLine() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getValue() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//
-//        booleancounter++;
-//
-//        super.visit(n, Args);
-//    }
 
-    public void visit(MethodReferenceExpr n, Object arg) {
-//        System.out.println("" + n.getIdentifier());
-        super.visit(n, arg);
-    }
-
-//    @Override
-//    public void visit(ReturnStmt n, Object arg) {
-//
-//        String sql = "";
-//
-//        sql = "CREATE TABLE RETURN "
-//                + "(ID INT PRIMARY KEY     NOT NULL,"
-//                + " ReturnCounter            INT     NOT NULL, "
-//                + " BeginColumn           INT    NOT NULL, "
-//                + " BeginLine            INT     NOT NULL, "
-//                + " Class        TEXT, "
-//                + " DATA        TEXT, "
-//                + " EndColumn        INT, "
-//                + " EndLine        INT, "
-//                + " Expression       TEXT, "
-//                + " String        TEXT, "
-//                + " TimeStamp         BIGINT)";
-//        if (returncounter == 0) {
-//            sqljdbc.createtable(databaseLoc, sql);
-//        }
-//        sql = "INSERT INTO RETURN (ID , ReturnCounter ,BeginColumn, BeginLine,Class,DATA , EndColumn , EndLine  ,Expression, String , TimeStamp) "
-//                + "VALUES ('" + returncounter + "',' " + returncounter + "',' " + n.getBeginColumn() + "',' " + n.getBeginLine() + "','" + n.getClass() + "','" + n.getData() + "','" + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.getExpr() + "','" + n.toString() + "','" + System.currentTimeMillis() + "' );";
-//
-//        sqljdbc.insert(databaseLoc, sql);
-//        sqljdbc.closeConnection();
-//
-//        returncounter++;
-//        /*
-//         sql = "" + createdbsyntax;
-//
-//         if (syntaxCounter == 0) {
-//
-//         sqljdbc.createtable(databaseLoc, sql);
-//
-//         }
-//         try {
-//         sqljdbc.closeConnection();
-//         } catch (SQLException ex) {
-//         Logger.getLogger(ForLoopVisitor.class.getName()).log(Level.SEVERE, null, ex);
-//         }
-//
-//         sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter + "',' " + n.getBeginColumn() + "',' " + n.getBeginLine() + "','"
-//         + n.getEndColumn() + "','" + n.getEndLine() + "','" + n.toString() + "','" + System.currentTimeMillis() + "',' Return','0' );";
-//
-//         sqljdbc.insert(databaseLoc, sql);
-//         try {
-//         sqljdbc.closeConnection();
-//         } catch (SQLException ex) {
-//         Logger.getLogger(ForLoopVisitor.class.getName()).log(Level.SEVERE, null, ex);
-//         }
-//         syntaxCounter++;
-//         */
-//        super.visit(n, arg);
-//    }
 }
