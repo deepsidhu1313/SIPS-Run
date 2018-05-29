@@ -138,7 +138,7 @@ public class Visitor extends VoidVisitorAdapter {
             + " EndColumn      INT, "
             + " EndLine        INT, "
             + " Name        TEXT, "
-            + " Resources      TEXT DEFAULT '[\"\"CPU\"\"]', "
+            + " Resources      TEXT DEFAULT '[\"CPU\"]', "
             + " DependsOn      TEXT DEFAULT '[]', "
             + " File        TEXT,"
             + " Length         DECIMAL DEFAULT '1.0',"
@@ -480,10 +480,11 @@ public class Visitor extends VoidVisitorAdapter {
                     if (taskCounter.get() == 0) {
                         GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
                     }
-
+                    String taskName = n.getArgument(0).toString();
+                    taskName = taskName.substring(1, taskName.length() - 1);
                     sql2 = "INSERT INTO TASKS (ID,BeginColumn,BeginLine,Class,Name,File,Timestamp)"
                             + " VALUES ('"
-                            + GlobalValues.taskCounter.get() + "','" + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + file.getAbsolutePath() + "','" + n.getArgument(0) + "','" + parentDir + "/" + file.getName() + "','" + System.currentTimeMillis() + "');";
+                            + GlobalValues.taskCounter.get() + "','" + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + file.getAbsolutePath() + "','" + taskName + "','" + parentDir + "/" + file.getName() + "','" + System.currentTimeMillis() + "');";
                     GlobalValues.sqljdbcTask.insert(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                     taskCounter.incrementAndGet();
@@ -496,7 +497,10 @@ public class Visitor extends VoidVisitorAdapter {
                     if (taskCounter.get() == 0) {
                         GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
                     }
-                    sql2 = "SELECT * FROM TASKS WHERE Name='" + n.getArgument(0) + "';";
+                    String taskName = n.getArgument(0).toString();
+                    taskName = taskName.substring(1, taskName.length() - 1);
+
+                    sql2 = "SELECT * FROM TASKS WHERE Name='" + taskName + "';";
                     ResultSet rs = GlobalValues.sqljdbcTask.select(tasksDBLoc, sql2);
                     JSONArray resources2;
                     ArrayList<String> list = new ArrayList<>();
@@ -521,8 +525,11 @@ public class Visitor extends VoidVisitorAdapter {
                     JSONArray resources = new JSONArray();
                     for (int i = 1; i < args.size(); i++) {
                         Expression get = args.get(i);
-                        if (!list.contains(get.toString())) {
-                            list.add(get.toString());
+                        String resource = get.toString();
+                        resource = resource.substring(1, resource.length() - 1);
+
+                        if (!list.contains(resource)) {
+                            list.add(resource);
                         }
                     }
 
@@ -531,7 +538,7 @@ public class Visitor extends VoidVisitorAdapter {
                         resources.put(get);
                     }
 
-                    sql2 = "UPDATE TASKS SET Resources='" + resources.toString() + "' WHERE Name='" + n.getArgument(0) + "' AND Class='" + file.getAbsolutePath() + "';";
+                    sql2 = "UPDATE TASKS SET Resources='" + resources.toString() + "' WHERE Name='" + taskName + "' AND Class='" + file.getAbsolutePath() + "';";
                     GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                 });
@@ -544,7 +551,10 @@ public class Visitor extends VoidVisitorAdapter {
                     if (taskCounter.get() == 0) {
                         GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
                     }
-                    sql2 = "SELECT * FROM TASKS WHERE Name='" + n.getArgument(0) + "';";
+                    String taskName = n.getArgument(0).toString();
+                    taskName = taskName.substring(1, taskName.length() - 1);
+
+                    sql2 = "SELECT * FROM TASKS WHERE Name='" + taskName + "';";
                     ResultSet rs = GlobalValues.sqljdbcTask.select(tasksDBLoc, sql2);
                     JSONArray dependencies2;
                     ArrayList<String> list = new ArrayList<>();
@@ -569,8 +579,11 @@ public class Visitor extends VoidVisitorAdapter {
                     JSONArray dependencies = new JSONArray();
                     for (int i = 1; i < args.size(); i++) {
                         Expression get = args.get(i);
-                        if (!list.contains(get.toString())) {
-                            list.add(get.toString());
+                        String dependency = get.toString();
+                        dependency = dependency.substring(1, dependency.length() - 1);
+
+                        if (!list.contains(dependency)) {
+                            list.add(dependency);
                         }
                     }
 
@@ -579,7 +592,7 @@ public class Visitor extends VoidVisitorAdapter {
                         dependencies.put(get);
                     }
 
-                    sql2 = "UPDATE TASKS SET DependsOn='" + dependencies.toString() + "' WHERE Name='" + n.getArgument(0) + "' AND Class='" + file.getAbsolutePath() + "';";
+                    sql2 = "UPDATE TASKS SET DependsOn='" + dependencies.toString() + "' WHERE Name='" + taskName + "' AND Class='" + file.getAbsolutePath() + "';";
                     GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                 });
@@ -611,7 +624,10 @@ public class Visitor extends VoidVisitorAdapter {
                     if (taskCounter.get() == 0) {
                         GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
                     }
-                    sql2 = "UPDATE TASKS SET EndColumn='" + n.getEnd().get().column + "',EndLine='" + n.getEnd().get().line + "' WHERE Name='" + n.getArgument(0) + "' AND Class='" + file.getAbsolutePath() + "';";
+                    String taskName = n.getArgument(0).toString();
+                    taskName = taskName.substring(1, taskName.length() - 1);
+
+                    sql2 = "UPDATE TASKS SET EndColumn='" + n.getEnd().get().column + "',EndLine='" + n.getEnd().get().line + "' WHERE Name='" + taskName + "' AND Class='" + file.getAbsolutePath() + "';";
                     GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                 });
@@ -624,8 +640,10 @@ public class Visitor extends VoidVisitorAdapter {
                     if (taskCounter.get() == 0) {
                         GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
                     }
+                    String taskName = n.getArgument(0).toString();
+                    taskName = taskName.substring(1, taskName.length() - 1);
 
-                    sql2 = "UPDATE TASKS SET Length='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "' AND Class='" + file.getAbsolutePath() + "';";
+                    sql2 = "UPDATE TASKS SET Length='" + n.getArgument(1) + "' WHERE Name='" + taskName + "' AND Class='" + file.getAbsolutePath() + "';";
                     GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                 });
@@ -636,8 +654,10 @@ public class Visitor extends VoidVisitorAdapter {
                     if (taskCounter.get() == 0) {
                         GlobalValues.sqljdbcTask.createtable(tasksDBLoc, sql2);
                     }
+                    String taskName = n.getArgument(0).toString();
+                    taskName = taskName.substring(1, taskName.length() - 1);
 
-                    sql2 = "UPDATE TASKS SET Timeout='" + n.getArgument(1) + "' WHERE Name='" + n.getArgument(0) + "' AND Class='" + file.getAbsolutePath() + "';";
+                    sql2 = "UPDATE TASKS SET Timeout='" + n.getArgument(1) + "' WHERE Name='" + taskName + "' AND Class='" + file.getAbsolutePath() + "';";
                     GlobalValues.sqljdbcTask.update(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                 });
