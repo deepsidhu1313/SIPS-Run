@@ -203,6 +203,26 @@ public class SIPSRun {
                     Util.write(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json", new JSONObject().put("recent", recent).toString());
                 }
 
+                if (arguments.contains("--do-not-recompile")) {
+                    System.out.println("\n***************************************************************"
+                            + "\n************** Uploading Job to " + manifestJSON.getJSONObject("MASTER").getString("HOST") + " *********************"
+                            + "\n***************************************************************"
+                    );
+                    System.out.println("\n***************************************************************"
+                            + "\n****************** Generating Checksums ***********************"
+                            + "\n***************************************************************"
+                    );
+                    Util.copyFileUsingStream(MANIFEST_FILE, new File(MANIFEST_FILE.getParentFile()+"/.build/"+MANIFEST_FILE.getName()));
+                    generateChecksums(new File(MANIFEST_FILE.getParentFile(), ".build/").getAbsolutePath());
+                    uploadFiles(new File(MANIFEST_FILE.getParentFile(), ".build/").getAbsolutePath());
+                    System.out.println("\n***************************************************************"
+                            + "\n*********************** Starting Job **************************"
+                            + "\n***************************************************************"
+                    );
+                    startJob(JOB_TOKEN);
+                    System.exit(0);
+                }
+
                 if (arguments.contains("--parallelism")) {
                     int index = arguments.indexOf("--parallelism");
                     PARALLELISM_THRESHOLD = Integer.parseInt(arguments.get(index + 1).trim());

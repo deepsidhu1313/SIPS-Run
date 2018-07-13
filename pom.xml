@@ -174,5 +174,10 @@
             <version>1.11</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>com.googlecode.cqengine</groupId>
+            <artifactId>cqengine</artifactId>
+            <version>2.12.4</version>
+        </dependency>
     </dependencies>
 </project>
