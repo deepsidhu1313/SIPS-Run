@@ -129,10 +129,10 @@ public class SimulateProject {
                         + "\n"
                         + "<target name=\"clean\">\n"
                         + "        <delete dir=\"build\"/>\n"
-                        + "    </target>"
+                        + "    </target>\n"
                         + "  <target name=\"compile\">\n"
                         + "<mkdir dir=\"build\"/>"
-                        + "    <javac srcdir=\"src\" destdir=\"build\" includes=\"**/*.java\" target=\"1.8\">\n"
+                        + "    <javac srcdir=\"src\" destdir=\"build\" includes=\"**/*.java\" target=\"1.10\">\n"
                         + "\n"
                         + "        <classpath refid=\"classpath.base\" />\n"
                         + "    </javac>\n"
@@ -171,8 +171,8 @@ public class SimulateProject {
                 out2.println("PATH=/bin:/usr/bin:/usr/local/bin");
                 out2.println("WORK=${PWD}/");
                 out2.println("cd  \"${1}/\"");
-                out2.println("bash ant");
-                out2.println("bash ant clean");
+                out2.println("ant");
+                out2.println("ant clean");
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(SimulateProject.class.getName()).log(Level.SEVERE, null, ex);
             }
