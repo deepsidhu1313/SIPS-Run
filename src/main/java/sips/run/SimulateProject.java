@@ -98,6 +98,17 @@ public class SimulateProject {
         }
     }
 
+    static String getVersion () {
+        String version = System.getProperty("java.version");
+        Double ver = Double.parseDouble (version.substring(0,version.indexOf('.')));
+        if(ver>=1.8){
+        return "1.8";//ver.toString();
+        }else{
+            return ("1."+ver.intValue());
+        }
+        
+    }
+    
     public void generateScripts(String name, JSONArray arg, String main, JSONArray jvmargs) {
         File f = new File(buildDir.getAbsolutePath() + "/build.xml");
         {
@@ -121,7 +132,8 @@ public class SimulateProject {
                     JVMARGS.append(arg1);
                     JVMARGS.append("\"/>\n");
                 }
-
+                String version = getVersion();
+                
                 out.println("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
                         + "<project default=\"run\" basedir=\".\" name=\"" + name + "\">\n"
                         + "  <!--this file was created by Eclipse Runnable JAR Export Wizard-->\n"
@@ -132,7 +144,7 @@ public class SimulateProject {
                         + "    </target>\n"
                         + "  <target name=\"compile\">\n"
                         + "<mkdir dir=\"build\"/>"
-                        + "    <javac srcdir=\"src\" destdir=\"build\" includes=\"**/*.java\" target=\"1.10\">\n"
+                        + "    <javac srcdir=\"src\" destdir=\"build\" includes=\"**/*.java\" target=\""+version+"\">\n"
                         + "\n"
                         + "        <classpath refid=\"classpath.base\" />\n"
                         + "    </javac>\n"
