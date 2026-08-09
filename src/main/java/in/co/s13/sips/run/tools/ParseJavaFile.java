@@ -5,7 +5,7 @@
  */
 package in.co.s13.sips.run.tools;
 
-import com.github.javaparser.JavaParser;
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,7 +36,7 @@ public class ParseJavaFile implements Runnable {
     public void run() {
         try (FileInputStream in = new FileInputStream(file)) {
             // parse the file
-            CompilationUnit cu = JavaParser.parse(in);
+            CompilationUnit cu = StaticJavaParser.parse(in);
             // visit and print the methods names
             // new MethodVisitor().visit(cu, args);
             Visitor flv = new Visitor(file);
