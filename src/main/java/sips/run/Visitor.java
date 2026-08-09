@@ -436,6 +436,25 @@ public class Visitor extends VoidVisitorAdapter {
                 syntaxCounter++;
             }
 
+            // Early exit markers. Matched exactly rather than by contains(),
+            // so "breakAfter" cannot also register as "breakAll" the way
+            // endParallelFor already matches parallelFor.
+            if (("breakAll".equals(n.getNameAsString()) || "breakAfter".equals(n.getNameAsString()))
+                    && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
+                sql = "" + createdbsyntax;
+                if (syntaxCounter == 0) {
+                    sqljdbc.createtable(databaseLoc, sql);
+                }
+                String category = "breakAll".equals(n.getNameAsString()) ? "BreakAll" : "BreakAfter";
+                sql = "" + insertdbsyntax + "VALUES ('" + syntaxCounter + "',' " + syntaxCounter
+                        + "',' " + n.getBegin().get().column + "',' " + n.getBegin().get().line + "','"
+                        + n.getEnd().get().column + "','" + n.getEnd().get().line + "','"
+                        + "','" + System.currentTimeMillis() + "','" + category + "','0' ,'NULL' );";
+                sqljdbc.insert(databaseLoc, sql);
+                sqljdbc.closeConnection();
+                syntaxCounter++;
+            }
+
             if (n.getNameAsString().contains("endParallelFor") && ("" + n.getScope().get()).trim().equals(sipsObjectName.trim())) {
                 sql = "" + createdbsyntax;
                 if (syntaxCounter == 0) {
