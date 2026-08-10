@@ -5,6 +5,7 @@
  */
 package in.co.s13.sips.run.tools;
 
+import in.co.s13.sips.lib.common.SipsPaths;
 import in.co.s13.SIPS.db.SQLiteJDBC;
 import java.io.File;
 import java.sql.ResultSet;
@@ -37,12 +38,17 @@ public class LevelDetector implements Runnable {
     String homeDir = ".build";
 
     public LevelDetector(File file) throws SQLException {
-        homeDir = SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build";
+        homeDir = SipsPaths.join(
+                    SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath(), ".build");
         String parentDir = file.getAbsoluteFile().getParentFile().getAbsolutePath();
 //        System.out.println("Length: "+parentDir.length());
-        parentDir = parentDir.substring(parentDir.lastIndexOf("src") + 3);
-        System.out.println(file.getParentFile().getAbsolutePath().lastIndexOf("src") + " Parent Dir:" + parentDir);
-        databaseLoc = homeDir + "/.parsed/" + parentDir + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-parsed.db";
+        // Walks elements rather than searching text: a project living
+        // under "srcfoo" matched the old search, and the offset it added
+        // assumed how wide a separator is.
+        parentDir = SipsPaths.relativeToAncestor(parentDir, "src").orElse("");
+        System.out.println("Parent Dir: " + parentDir);
+        databaseLoc = SipsPaths.join(homeDir, ".parsed", parentDir)
+                    + java.io.File.separator + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-parsed.db";
         System.out.println(databaseLoc);
         filename = "" + file.getName();
 //        tabnumber = counter;

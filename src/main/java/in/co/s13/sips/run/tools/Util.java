@@ -16,6 +16,7 @@
  */
 package in.co.s13.sips.run.tools;
 
+import in.co.s13.sips.lib.common.SipsPaths;
 import com.sun.management.OperatingSystemMXBean;
 import static in.co.s13.sips.run.settings.GlobalValues.OS;
 import static in.co.s13.sips.run.settings.GlobalValues.OS_Name;
@@ -429,7 +430,7 @@ public class Util {
 
     public static void createTarGZ(String fileOrDir) {
         File dirPath = new File(fileOrDir);
-        String tarGzPath = dirPath.getParent() + "/" + dirPath.getName() + ".tar.gz";
+        String tarGzPath = SipsPaths.join(dirPath.getParent(), dirPath.getName() + ".tar.gz");
         createTarGZ(fileOrDir, tarGzPath);
     }
 
@@ -462,7 +463,7 @@ public class Util {
             if (children != null) {
                 for (File child : children) {
 //                    System.out.println(child.getName());
-                    addFileToTarGz(tOut, child.getAbsolutePath(), entryName + "/");
+                    addFileToTarGz(tOut, child.getAbsolutePath(), entryName + "/"); // path-ok: tar entry names use / on every platform
                 }
             }
         }

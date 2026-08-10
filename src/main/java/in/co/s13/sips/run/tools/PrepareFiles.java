@@ -16,6 +16,7 @@
  */
 package in.co.s13.sips.run.tools;
 
+import in.co.s13.sips.lib.common.SipsPaths;
 import in.co.s13.SIPS.db.SQLiteJDBC;
 import java.io.File;
 import java.sql.ResultSet;
@@ -56,12 +57,17 @@ public class PrepareFiles {
 
         System.out.println(OS);
         System.out.println(file);
-        String homeDir = SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build";
+        String homeDir = SipsPaths.join(
+                SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath(), ".build");
                 String parentDir=file.getAbsoluteFile().getParentFile().getAbsolutePath();
 //        System.out.println("Length: "+parentDir.length());
-        parentDir=parentDir.substring(parentDir.lastIndexOf("src")+3);
+        // Walks elements rather than searching text: a project living
+        // under "srcfoo" matched the old search, and the offset it added
+        // assumed how wide a separator is.
+        parentDir = SipsPaths.relativeToAncestor(parentDir, "src").orElse("");
 //        System.out.println("Parent Dir: "+parentDir);
-        dbloc = homeDir + "/.parsed/" + parentDir + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-parsed.db";
+        dbloc = SipsPaths.join(homeDir, ".parsed", parentDir)
+                    + java.io.File.separator + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-parsed.db";
        
         if (isWindows()) {
             System.out.println("This is Windows");

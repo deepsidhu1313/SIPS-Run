@@ -5,6 +5,7 @@
  */
 package sips.run;
 
+import in.co.s13.sips.lib.common.SipsPaths;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
@@ -152,12 +153,17 @@ public class Visitor extends VoidVisitorAdapter {
     public Visitor(File file) throws IOException {
         this.file = file;
 //        sqljdbc.setVerbose(true);
-        homeDir = SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build";
-        parentDir = file.getAbsoluteFile().getParentFile().getAbsolutePath();
-//        System.out.println("Length: "+parentDir.length());
-        parentDir = parentDir.substring(parentDir.lastIndexOf("src") + 3);
+        homeDir = SipsPaths.join(
+                    SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath(), ".build");
+        // The package directories below src, in canonical form. This value is
+        // written into the AST database and read back by whichever node runs
+        // the chunk -- possibly on a different operating system -- so it must
+        // not carry this machine's separator.
+        parentDir = SipsPaths.canonical(SipsPaths.relativeToAncestor(
+                file.getAbsoluteFile().getParentFile().getAbsolutePath(), "src").orElse(""));
 //        System.out.println("Parent Dir: "+parentDir);
-        databaseLoc = homeDir + "/.parsed/" + parentDir + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-parsed.db";
+        databaseLoc = SipsPaths.join(homeDir, ".parsed", parentDir)
+                    + java.io.File.separator + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-parsed.db";
         File dbfile = new File(databaseLoc);
         if (dbfile.exists()) {
             boolean b = dbfile.delete();
@@ -169,7 +175,8 @@ public class Visitor extends VoidVisitorAdapter {
         if (!dbfile.getParentFile().exists()) {
             dbfile.getParentFile().mkdirs();
         }
-        databaseLoc2 = homeDir + "/.simulated/" + parentDir + "/" + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-sim.db";
+        databaseLoc2 = SipsPaths.join(homeDir, ".simulated", parentDir)
+                    + java.io.File.separator + file.getName().substring(0, file.getName().lastIndexOf(".")) + "-sim.db";
         File dbfile2 = new File(databaseLoc2);
         if (dbfile2.exists()) {
             boolean b = dbfile2.delete();
@@ -183,7 +190,7 @@ public class Visitor extends VoidVisitorAdapter {
             dbfile2.getParentFile().mkdirs();
         }
 
-        tasksDBLoc = homeDir + "/.parsed/" + "tasks.db";
+        tasksDBLoc = SipsPaths.join(homeDir, ".parsed", "tasks.db");
         File taskDBFile = new File(tasksDBLoc);
 
         if (!taskDBFile.getParentFile().exists()) {
@@ -503,7 +510,7 @@ public class Visitor extends VoidVisitorAdapter {
                     taskName = taskName.substring(1, taskName.length() - 1);
                     sql2 = "INSERT INTO TASKS (ID,BeginColumn,BeginLine,Class,Name,File,Timestamp)"
                             + " VALUES ('"
-                            + GlobalValues.taskCounter.get() + "','" + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + file.getAbsolutePath() + "','" + taskName + "','" + parentDir + "/" + file.getName() + "','" + System.currentTimeMillis() + "');";
+                            + GlobalValues.taskCounter.get() + "','" + n.getBegin().get().column + "','" + n.getBegin().get().line + "','" + file.getAbsolutePath() + "','" + taskName + "','" + SipsPaths.canonicalJoin(parentDir, file.getName()) + "','" + System.currentTimeMillis() + "');";
                     GlobalValues.sqljdbcTask.insert(tasksDBLoc, sql2);
                     GlobalValues.sqljdbcTask.closeConnection();
                     taskCounter.incrementAndGet();

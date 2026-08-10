@@ -5,6 +5,7 @@
  */
 package sips.run;
 
+import in.co.s13.sips.lib.common.SipsPaths;
 import in.co.s13.sips.run.settings.GlobalValues;
 import in.co.s13.sips.run.tools.GetJavaFiles;
 import in.co.s13.sips.run.tools.ParseJavaFile;
@@ -48,7 +49,7 @@ public class SIPSRun {
     public static JSONObject settingsJSON = null;
 //    public static JSONObject recentJobsJSON = null;
     public static String UUID, API_KEY, JOB_TOKEN;
-    public static String RECENT_JOBS_DB = System.getProperty("user.home") + "/.sips/sips-run-recent.db";
+    public static String RECENT_JOBS_DB = SipsPaths.join(System.getProperty("user.home"), ".sips", "sips-run-recent.db");
     int PARALLELISM_THRESHOLD = (Runtime.getRuntime().availableProcessors() - 2) < 1 ? 1 : (Runtime.getRuntime().availableProcessors() - 2);
 
     /**
@@ -65,18 +66,18 @@ public class SIPSRun {
                 + "\n***************************************************************"
         );
         String manifestFile = "manifest.json";
-        File SIPSDir = new File(System.getProperty("user.home") + "/.sips/");
+        File SIPSDir = new File(SipsPaths.join(System.getProperty("user.home"), ".sips"));
         if (!SIPSDir.exists()) {
             SIPSDir.mkdirs();
         }
-        settingsJSON = Util.readJSONFile(System.getProperty("user.home") + "/.sips/sips-run.json");
+        settingsJSON = Util.readJSONFile(SipsPaths.join(System.getProperty("user.home"), ".sips", "sips-run.json"));
         //recentJobsJSON = Util.readJSONFile(System.getProperty("user.home") + "/.sips/sips-run-recent.json");
         UUID = settingsJSON.getString("UUID", "");
         if (UUID.trim().length() < 1) {
             UUID = Util.generateNodeUUID();
             settingsJSON.remove("UUID");
             settingsJSON.put("UUID", UUID);
-            Util.write(System.getProperty("user.home") + "/.sips/sips-run.json", settingsJSON.toString(4));
+            Util.write(SipsPaths.join(System.getProperty("user.home"), ".sips", "sips-run.json"), settingsJSON.toString(4));
         }
         //if (args.length > 0)
         {
@@ -118,7 +119,7 @@ public class SIPSRun {
 
                 if (arguments.contains("--view-recent-jobs")) {
                     System.out.println("Recent Jobs:\n ");
-                    JSONObject recentJobs = Util.readJSONFile(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json");
+                    JSONObject recentJobs = Util.readJSONFile(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), "recent-jobs.json"));
                     JSONArray recent = recentJobs.getJSONArray("recent", new JSONArray());
                     for (int i = recent.length() - 1; i >= 0; i--) {
                         String get = recent.getString(i);
@@ -128,14 +129,14 @@ public class SIPSRun {
                             recent.remove(i);
                         }
                     }
-                    Util.write(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json", new JSONObject().put("recent", recent).toString());
+                    Util.write(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), "recent-jobs.json"), new JSONObject().put("recent", recent).toString());
 
                     System.exit(0);
                 }
 
                 if (arguments.contains("--view-last-job")) {
                     System.out.println("Recent Jobs:\n ");
-                    JSONObject recentJobs = Util.readJSONFile(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json");
+                    JSONObject recentJobs = Util.readJSONFile(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), "recent-jobs.json"));
                     JSONArray recent = recentJobs.getJSONArray("recent", new JSONArray());
                     if (recent.length() > 0) {
                         String get = recent.getString(recent.length() - 1);
@@ -148,7 +149,7 @@ public class SIPSRun {
 
                 if (arguments.contains("--view-dist-tables")) {
                     System.out.println("Dist Table of All Recent Jobs:\n ");
-                    JSONObject recentJobs = Util.readJSONFile(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json");
+                    JSONObject recentJobs = Util.readJSONFile(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), "recent-jobs.json"));
                     JSONArray recent = recentJobs.getJSONArray("recent", new JSONArray());
                     for (int i = recent.length() - 1; i >= 0; i--) {
                         String get = recent.getString(i);
@@ -158,13 +159,13 @@ public class SIPSRun {
                             recent.remove(i);
                         }
                     }
-                    Util.write(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json", new JSONObject().put("recent", recent).toString());
+                    Util.write(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), "recent-jobs.json"), new JSONObject().put("recent", recent).toString());
 
                     System.exit(0);
                 }
                 if (arguments.contains("--view-dist-table")) {
                     System.out.println("Dist Table of Recent Job:\n ");
-                    JSONObject recentJobs = Util.readJSONFile(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json");
+                    JSONObject recentJobs = Util.readJSONFile(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), "recent-jobs.json"));
                     JSONArray recent = recentJobs.getJSONArray("recent", new JSONArray());
                     if (recent.length() > 0) {
                         String get = recent.getString(recent.length() - 1);
@@ -197,10 +198,10 @@ public class SIPSRun {
                             + "\n************** Use This Token to get Status *******************"
                             + "\n***************************************************************"
                     );
-                    JSONObject recentJobs = Util.readJSONFile(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json");
+                    JSONObject recentJobs = Util.readJSONFile(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), "recent-jobs.json"));
                     JSONArray recent = recentJobs.getJSONArray("recent", new JSONArray());
                     recent.put(JOB_TOKEN);
-                    Util.write(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/recent-jobs.json", new JSONObject().put("recent", recent).toString());
+                    Util.write(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), "recent-jobs.json"), new JSONObject().put("recent", recent).toString());
                 }
 
                 if (arguments.contains("--do-not-recompile")) {
@@ -212,7 +213,7 @@ public class SIPSRun {
                             + "\n****************** Generating Checksums ***********************"
                             + "\n***************************************************************"
                     );
-                    Util.copyFileUsingStream(MANIFEST_FILE, new File(MANIFEST_FILE.getParentFile()+"/.build/"+MANIFEST_FILE.getName()));
+                    Util.copyFileUsingStream(MANIFEST_FILE, new File(SipsPaths.join(MANIFEST_FILE.getParent(), ".build", MANIFEST_FILE.getName())));
                     generateChecksums(new File(MANIFEST_FILE.getParentFile(), ".build/").getAbsolutePath());
                     uploadFiles(new File(MANIFEST_FILE.getParentFile(), ".build/").getAbsolutePath());
                     System.out.println("\n***************************************************************"
@@ -390,8 +391,9 @@ public class SIPSRun {
         GetJavaFiles getJavaFiles = new GetJavaFiles();
         javaFiles = getJavaFiles.getJavaFiles(new File(MANIFEST_FILE.getParentFile(), "src").getAbsolutePath());
         System.out.println("List of Java Files:\n" + javaFiles);
-        String homeDir = SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build";
-        String tasksDBLoc = homeDir + "/.parsed/" + "tasks.db";
+        String homeDir = SipsPaths.join(
+                SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath(), ".build");
+        String tasksDBLoc = SipsPaths.join(homeDir, ".parsed", "tasks.db");
         File taskDBFile = new File(tasksDBLoc);
         if (taskDBFile.exists()) {
             taskDBFile.delete();
@@ -409,9 +411,9 @@ public class SIPSRun {
         GlobalValues.taskParserExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         levelDetectorExecutor.shutdown();
         levelDetectorExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-        Util.copyFolder(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/src"), (new File(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build"), ("src/"))));
-        Util.copyFolder(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/lib"), (new File(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build"), ("lib/"))));
-        Util.copyFolder(MANIFEST_FILE, (new File(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build"), ("manifest.json"))));
+        Util.copyFolder(new File(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), "src")), (new File(new File(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), ".build")), ("src/"))));
+        Util.copyFolder(new File(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), "lib")), (new File(new File(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), ".build")), ("lib/"))));
+        Util.copyFolder(MANIFEST_FILE, (new File(new File(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), ".build")), ("manifest.json"))));
         javaFiles = getJavaFiles.getJavaFiles(new File(MANIFEST_FILE.getParentFile(), ".build/src").getAbsolutePath());
         System.out.println("List of Java Files:\n" + javaFiles);
         /**
@@ -424,7 +426,7 @@ public class SIPSRun {
         SimulateProject simulate = new SimulateProject();
         simulate.generateScripts(manifestJSON.getString("PROJECT", ""), manifestJSON.getJSONArray("ARGS", new JSONArray()), manifestJSON.getString("MAIN", ""), manifestJSON.getJSONArray("JVMARGS", new JSONArray()));
         simulate.simulate();
-        Util.copyFolder(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/src"), (new File(new File(MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build"), ("src/"))));
+        Util.copyFolder(new File(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), "src")), (new File(new File(SipsPaths.join(MANIFEST_FILE.getParentFile().getAbsolutePath(), ".build")), ("src/"))));
         for (int i = 0; i < javaFiles.size(); i++) {
             String get = javaFiles.get(i);
             PrepareFiles prepareFile = new PrepareFiles(PrepareFiles.MODE.UNCOMMENT, new File(get));
@@ -555,7 +557,7 @@ public class SIPSRun {
                 Class cls = cl.loadClass(scheduler);
 
                 LoadScheduler loadScheduler = new LoadScheduler((Scheduler) cls.newInstance());
-                Util.serialize(loadScheduler, new File(MANIFEST_FILE.getParentFile().getAbsoluteFile(), ".build/.simulated/" + scheduler + ".obj").toString());
+                Util.serialize(loadScheduler, new File(MANIFEST_FILE.getParentFile().getAbsoluteFile(), SipsPaths.join(".build", ".simulated", scheduler + ".obj")).toString());
             }
         }
     }
@@ -581,8 +583,9 @@ public class SIPSRun {
         master.put("API-PORT", "13139");
         master.put("API-KEY", "");
         manifest.put("MASTER", master);
-        Util.write(((projectName.trim().length() > 0 ? projectName + "/" : ""))
-                + "manifest.json", manifest.toString(4)
+        Util.write(projectName.trim().isEmpty()
+                ? "manifest.json"
+                : SipsPaths.join(projectName, "manifest.json"), manifest.toString(4)
         );
         System.out.println("Put SIPS lib jar file in the directory to provide SIPS support");
 
@@ -595,9 +598,9 @@ public class SIPSRun {
             return;
         }
         projectDir.mkdirs();
-        File libDir = new File(name + "/lib");
+        File libDir = new File(SipsPaths.join(name, "lib"));
         libDir.mkdirs();
-        File srcDir = new File(name + "/src");
+        File srcDir = new File(SipsPaths.join(name, "src"));
         srcDir.mkdirs();
         generateManifest(name);
     }

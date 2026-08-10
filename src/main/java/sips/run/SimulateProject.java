@@ -5,6 +5,7 @@
  */
 package sips.run;
 
+import in.co.s13.sips.lib.common.SipsPaths;
 import in.co.s13.sips.run.tools.Util;
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,7 +28,8 @@ public class SimulateProject {
 
     public SimulateProject() {
 //        this.manifestJson = manifestJson;
-        buildDir = new File(SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath() + "/.build/");
+        buildDir = new File(SipsPaths.join(
+                SIPSRun.MANIFEST_FILE.getParentFile().getAbsolutePath(), ".build"));
 
     }
 
@@ -39,13 +41,13 @@ public class SimulateProject {
         Long startTime = System.currentTimeMillis();
         String loc = buildDir.getAbsolutePath();
         if (Util.isWindows()) {
-            String scriptloc = "" + loc + "/simulate.bat";
+            String scriptloc = SipsPaths.join(loc, "simulate.bat");
             String cmd[] = {scriptloc, loc};
             pb = new ProcessBuilder(cmd);
             //  pb.directory(new File(controlpanel.settings.PWD));
 
         } else if (Util.isUnix()) {
-            String scriptloc = "" + loc + "/simulate.sh";
+            String scriptloc = SipsPaths.join(loc, "simulate.sh");
             String cmd[] = {"/bin/bash", scriptloc, loc};
             pb = new ProcessBuilder(cmd);
             //pb.directory(new File(controlpanel.settings.PWD));
@@ -110,7 +112,7 @@ public class SimulateProject {
     }
     
     public void generateScripts(String name, JSONArray arg, String main, JSONArray jvmargs) {
-        File f = new File(buildDir.getAbsolutePath() + "/build.xml");
+        File f = new File(SipsPaths.join(buildDir.getAbsolutePath(), "build.xml"));
         {
 //            if (f.exists()) {
 //                return;
@@ -173,7 +175,7 @@ public class SimulateProject {
 
         }
         if (Util.isUnix()) {
-            File f3 = new File(buildDir.getAbsolutePath() + "/simulate.sh");
+            File f3 = new File(SipsPaths.join(buildDir.getAbsolutePath(), "simulate.sh"));
             if (f3.exists()) {
                 f3.delete();
             }
@@ -189,7 +191,7 @@ public class SimulateProject {
                 Logger.getLogger(SimulateProject.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (Util.isWindows()) {
-            File f4 = new File(buildDir.getAbsolutePath() + "/simulate.bat");
+            File f4 = new File(SipsPaths.join(buildDir.getAbsolutePath(), "simulate.bat"));
             if (f4.exists()) {
                 f4.delete();
             }
